@@ -1,0 +1,378 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Cuerpo principal abarcando toda la pantalla con el fondo geométrico de Figma */
+body.figma-login-body {
+    background-color: #dcdde6; /* Color de respaldo por si la imagen tarda en cargar */
+    background-image: url('../img/fondo.jpg'); /* Asegúrate de que esta ruta apunte a tu imagen de fondo */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Franja superior teal del login */
+.login-header {
+    width: 100%;
+    background-color: #17a2b8;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    padding: 16px 0;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Contenedor principal que se acopla al fondo sin parecer tarjeta flotante */
+/* Asegura que el contenedor central sea totalmente transparente */
+.login-card-figma {
+    width: 100%;
+    max-width: 100%;
+    background: transparent !important; /* Elimina el fondo blanco */
+    border: none !important;
+    box-shadow: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* Cuerpo interno centrado */
+.figma-body {
+    width: 100%;
+    padding: 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Logotipo central */
+.figma-logo {
+    width: 320px;
+    max-width: 85%;
+    height: auto;
+    margin-bottom: 40px;
+    margin-top: 60px;
+}
+
+/* Formulario */
+.figma-form {
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Grupos de inputs integrados */
+.figma-input-group {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+    .figma-input-group input {
+        width: 100%;
+        border: none;
+        border-bottom: 2px solid #444;
+        background: transparent;
+        padding: 10px 4px;
+        font-size: 1.1rem;
+        color: #111;
+        outline: none;
+    }
+
+        .figma-input-group input:focus {
+            border-bottom-color: #143275;
+        }
+
+/* Botón de acceso idéntico */
+#btnLogin {
+    background-color: #143275 !important;
+    border: none !important;
+    border-radius: 40px !important;
+    padding: 14px 0;
+    font-weight: bold;
+    font-size: 1.05rem;
+    letter-spacing: 1.5px;
+    width: 75% !important;
+    margin-top: 20px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(20, 50, 117, 0.4);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#btnLogin:hover {
+        background-color: #1b3f94 !important;
+   }
+
+/* ==========================================
+   DASHBOARD FIGMA ESTILOS (DEPORTES CALIFORNIA)
+   ========================================== */
+
+body.dashboard-body {
+    background-color: #a8e5eb; /* Fondo celeste claro exacto del diseño */
+    min-height: 100vh;
+    padding-bottom: 80px; /* Espacio para que el menú flotante inferior no tape contenido */
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header Teal con Bordes e Iconos */
+.figma-header {
+    background-color: #17a2b8;
+    color: white;
+    height: 60px;
+    border-bottom: 3px solid #000;
+}
+
+.header-logo-container {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.header-logo {
+    width: 90%;
+    height: auto;
+}
+
+/* Banner Principal "HOME - DASHBOARD" */
+.dash-banner {
+    background-color: #4b83c4; /* Azul del banner de Figma */
+    color: #000;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    padding: 1.2rem;
+    border: 3px solid #000;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    letter-spacing: 1px;
+}
+
+/* Tarjetas Métricas con Borde Negro Estilo Figma */
+.metric-card {
+    background-color: #ffffff;
+    border: 3px solid #000;
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    color: #000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.metric-card-lg {
+    padding: 1.5rem;
+}
+
+.metric-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #111;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.metric-value-lg {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.metric-icon {
+    font-size: 3rem;
+    color: #222;
+}
+
+.metric-icon-lg {
+    font-size: 4.5rem;
+    color: #222;
+}
+
+/* Lista de Movimientos */
+.movimientos-list .list-group-item {
+    font-size: 1.05rem;
+    border-color: #ccc !important;
+}
+
+/* Menú de Navegación Flotante Inferior */
+.bottom-nav {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    width: min(420px, calc(100% - 20px));
+    transform: translateX(-50%);
+    background-color: #ffffff;
+    border: 2px solid #000;
+    border-radius: 20px;
+    padding: 6px 20px;
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.bottom-nav .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #555;
+        font-weight: 700;
+        font-size: 0.75rem;
+        transition: color 0.2s ease;
+        padding: 0 12px;
+    }
+
+.bottom-nav .nav-item i {
+            font-size: 1.4rem;
+        }
+
+.bottom-nav .nav-item.active,
+.bottom-nav .nav-item:hover {
+            color: #000;
+        }
+/* ==========================================
+   ESTILOS GESTIÓN DE INVENTARIO (FIGMA)
+   ========================================== */
+
+/* Píldoras de Búsqueda y Categoría */
+.custom-input-pill {
+    background-color: #ffffff;
+    border: 2px solid #000;
+    border-radius: 50px;
+    padding: 4px 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Botones Verdes de Acción */
+.btn-action-green {
+    background-color: #3b8e61 !important; /* Verde exacto de Figma */
+    color: #ffffff !important;
+    border: 2px solid #000 !important;
+    border-radius: 50px !important;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+    .btn-action-green:hover {
+        background-color: #2e704c !important;
+        transform: translateY(-1px);
+    }
+
+/* Contenedor de Tabla con Borde */
+.table-card {
+    background-color: #ffffff;
+    border: 3px solid #000;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos de la Tabla Custom */
+.custom-inv-table th {
+    border-bottom: 2px solid #000 !important;
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    padding-bottom: 12px;
+}
+
+.custom-inv-table td {
+    border-bottom: 1px solid #d1d5db;
+    padding: 12px 8px;
+    font-size: 0.95rem;
+}
+
+.custom-inv-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Imágenes pequeñas dentro de la tabla */
+.table-img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+}
+
+/* ==========================================
+   COMPONENTES COMUNES (formularios, venta, perfil)
+   ========================================== */
+.dashboard-content { max-width: 1200px; margin-inline: auto; }
+.dash-banner { font-size: clamp(1.2rem, 3vw, 1.8rem); }
+.figma-header a { color: #fff; text-decoration: none; }
+.figma-header h1 { font-size: clamp(.75rem, 2.2vw, 1.05rem); min-width: 0; }
+
+.form-card { background: #fff; border: 3px solid #000; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,.1); }
+.field-label { font-weight: 700; font-size: .85rem; margin: 0 0 .25rem .6rem; }
+.pill-field { border: 2px solid #000 !important; border-radius: 50px !important; padding: .45rem 1rem !important; background: #fff; box-shadow: none !important; }
+textarea.pill-field { border-radius: 16px !important; }
+
+.btn-pill { border: 2px solid #000; border-radius: 50px; font-weight: 700; padding: .55rem 1.4rem; color: #fff; letter-spacing: .5px; box-shadow: 0 3px 6px rgba(0,0,0,.15); }
+.btn-pill:hover, .btn-pill:focus { color: #fff; filter: brightness(.9); }
+.btn-pill:disabled { opacity: .6; }
+.btn-blue { background: #143275; }
+.btn-green { background: #3b8e61; }
+.btn-red { background: #c0392b; }
+.btn-orange, .btn-orange:hover, .btn-orange:focus { background: #f39c12; color: #000; }
+
+.img-preview { width: 100%; max-width: 220px; aspect-ratio: 1; border: 2px dashed #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fff; overflow: hidden; cursor: pointer; text-align: center; font-weight: 700; margin: 0; }
+.img-preview img { width: 100%; height: 100%; object-fit: contain; }
+.detail-img { width: 100%; max-width: 260px; aspect-ratio: 1; object-fit: contain; }
+
+/* Registrar venta */
+.sale-panel { background: #fff; border: 3px solid #000; border-radius: 16px; padding: 1rem; height: 100%; }
+.scroll-list { max-height: 55vh; overflow-y: auto; padding-right: 4px; }
+.prod-row, .cart-row { display: flex; align-items: center; gap: .7rem; background: #d9d9d9; border: 2px solid #000; border-radius: 10px; padding: .4rem .6rem; margin-bottom: .5rem; }
+.prod-row { cursor: pointer; }
+.prod-row:hover { background: #c3e4e8; }
+.prod-row.agotado { opacity: .5; cursor: not-allowed; }
+.prod-row img, .cart-row img { width: 48px; height: 48px; object-fit: contain; background: #fff; border-radius: 8px; flex-shrink: 0; }
+.qty-box { display: flex; align-items: center; gap: .35rem; font-weight: 700; }
+.qty-box button { width: 26px; height: 26px; border: 2px solid #000; border-radius: 6px; background: #fff; font-weight: 800; line-height: 1; padding: 0; }
+
+/* Confirmar venta */
+.total-box { background: #f39c12; border: 3px solid #000; border-radius: 14px; padding: 1rem; text-align: center; font-weight: 800; }
+.total-box .monto { font-size: 2rem; line-height: 1.1; }
+.pay-btn { width: 100%; border: 3px solid #000; border-radius: 14px; padding: .9rem; color: #fff; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: .2rem; }
+.pay-btn i { font-size: 1.8rem; }
+.pay-btn.transferencia { background: #1f8fe0; }
+.pay-btn.efectivo { background: #2fb344; }
+.pay-btn.sel { outline: 5px solid #000; outline-offset: 2px; }
+
+/* Perfil */
+.perfil-fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 2px solid #444; padding: .6rem .2rem; }
+
+/* Avisos flotantes */
+.toast-zone { position: fixed; top: 70px; right: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: calc(100% - 24px); }
+
+/* Bienvenida */
+body.landing-body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem 1.2rem; font-family: system-ui, -apple-system, sans-serif; background: radial-gradient(circle at 15% 20%, #fff8e4, #fdf1d6 60%, #f6e3bd); }
+.landing-title { font-family: Georgia, "Times New Roman", serif; font-weight: 800; font-size: clamp(1.5rem, 4.5vw, 2.4rem); letter-spacing: .5px; }
+.landing-logo { width: min(340px, 80%); margin: 1.2rem 0; }
+.landing-text { max-width: 480px; font-size: .95rem; color: #333; }
+.btn-landing { background: #000; color: #fff; border-radius: 50px; padding: .8rem 2.6rem; font-weight: 700; letter-spacing: 1px; text-decoration: none; margin-top: 1.5rem; }
+.btn-landing:hover { background: #222; color: #fff; }
