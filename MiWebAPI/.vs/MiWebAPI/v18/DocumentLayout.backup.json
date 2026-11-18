@@ -1,12 +1,37 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\gamer\\Downloads\\MiWebAPI\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\DeportesCalifornia\\MiWebAPI\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{AD3A25F5-1168-4F9F-B7EB-778DAB0AF1CD}|MiWebAPI\\MiWebAPI.csproj|c:\\deportescalifornia\\miwebapi\\miwebapi\\controllers\\productocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AD3A25F5-1168-4F9F-B7EB-778DAB0AF1CD}|MiWebAPI\\MiWebAPI.csproj|solutionrelative:miwebapi\\controllers\\productocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ProductoController.cs",
+              "DocumentMoniker": "C:\\DeportesCalifornia\\MiWebAPI\\MiWebAPI\\Controllers\\ProductoController.cs",
+              "RelativeDocumentMoniker": "MiWebAPI\\Controllers\\ProductoController.cs",
+              "ToolTip": "C:\\DeportesCalifornia\\MiWebAPI\\MiWebAPI\\Controllers\\ProductoController.cs",
+              "RelativeToolTip": "MiWebAPI\\Controllers\\ProductoController.cs",
+              "ViewState": "AgIAAOMAAAAAAAAAAAAqwPMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-18T01:10:29.089Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

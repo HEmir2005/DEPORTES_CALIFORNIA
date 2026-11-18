@@ -74,58 +74,7 @@
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
-      {
-        "Name": "Sku",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Nombre",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Descripcion",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "IdCategoria",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "Talla",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Color",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Precio",
-        "Type": "System.Decimal",
-        "IsRequired": false
-      },
-      {
-        "Name": "Stock",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "IdUsuario",
-        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "Imagen",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
-        "IsRequired": false
-      }
-    ],
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -156,56 +105,6 @@
         "Name": "sku",
         "Type": "System.String",
         "IsRequired": true
-      },
-      {
-        "Name": "Sku",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Nombre",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Descripcion",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "IdCategoria",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "Talla",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Color",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "Precio",
-        "Type": "System.Decimal",
-        "IsRequired": false
-      },
-      {
-        "Name": "Stock",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "IdUsuario",
-        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "Imagen",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
-        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -215,6 +114,22 @@
     "Method": "Eliminar",
     "RelativePath": "api/Producto/{sku}",
     "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sku",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "MiWebAPI.Controllers.ProductoController",
+    "Method": "Imagen",
+    "RelativePath": "api/Producto/{sku}/imagen",
+    "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [

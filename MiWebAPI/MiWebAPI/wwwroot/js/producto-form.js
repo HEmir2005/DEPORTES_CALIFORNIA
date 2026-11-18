@@ -35,7 +35,20 @@ form.addEventListener("submit", async (evento) => {
 
     btnGuardar.disabled = true;
     try {
-        const r = await api(skuEditar ? `/api/Producto/${encodeURIComponent(skuEditar)}` : "/api/Producto", { method: skuEditar ? "PUT" : "POST", body: datos });
+        const urlDestino = skuEditar ? `/api/Producto/${encodeURIComponent(skuEditar)}` : "/api/Producto";
+        const metodo = skuEditar ? "PUT" : "POST";
+
+        // Usamos fetch nativo para FormData para que el navegador asigne correctamente multipart/form-data
+        const respuestaHttp = await fetch(urlDestino, {
+            method: metodo,
+            body: datos
+        });
+
+        const r = await respuestaHttp.json();
+        if (!respuestaHttp.ok || !r.isSuccess) {
+            throw new Error(r.respuesta || "Error al procesar la solicitud.");
+        }
+
         aviso(r.respuesta);
         setTimeout(() => (location.href = "inventario.html"), 900);
     } catch (error) {

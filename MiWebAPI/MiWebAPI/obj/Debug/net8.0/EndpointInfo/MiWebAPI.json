@@ -125,84 +125,6 @@
         "tags": [
           "Producto"
         ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "Sku": {
-                    "type": "string"
-                  },
-                  "Nombre": {
-                    "type": "string"
-                  },
-                  "Descripcion": {
-                    "type": "string"
-                  },
-                  "IdCategoria": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "Talla": {
-                    "type": "string"
-                  },
-                  "Color": {
-                    "type": "string"
-                  },
-                  "Precio": {
-                    "type": "number",
-                    "format": "double"
-                  },
-                  "Stock": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "IdUsuario": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "Imagen": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                }
-              },
-              "encoding": {
-                "Sku": {
-                  "style": "form"
-                },
-                "Nombre": {
-                  "style": "form"
-                },
-                "Descripcion": {
-                  "style": "form"
-                },
-                "IdCategoria": {
-                  "style": "form"
-                },
-                "Talla": {
-                  "style": "form"
-                },
-                "Color": {
-                  "style": "form"
-                },
-                "Precio": {
-                  "style": "form"
-                },
-                "Stock": {
-                  "style": "form"
-                },
-                "IdUsuario": {
-                  "style": "form"
-                },
-                "Imagen": {
-                  "style": "form"
-                }
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success"
@@ -257,84 +179,6 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "Sku": {
-                    "type": "string"
-                  },
-                  "Nombre": {
-                    "type": "string"
-                  },
-                  "Descripcion": {
-                    "type": "string"
-                  },
-                  "IdCategoria": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "Talla": {
-                    "type": "string"
-                  },
-                  "Color": {
-                    "type": "string"
-                  },
-                  "Precio": {
-                    "type": "number",
-                    "format": "double"
-                  },
-                  "Stock": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "IdUsuario": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "Imagen": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                }
-              },
-              "encoding": {
-                "Sku": {
-                  "style": "form"
-                },
-                "Nombre": {
-                  "style": "form"
-                },
-                "Descripcion": {
-                  "style": "form"
-                },
-                "IdCategoria": {
-                  "style": "form"
-                },
-                "Talla": {
-                  "style": "form"
-                },
-                "Color": {
-                  "style": "form"
-                },
-                "Precio": {
-                  "style": "form"
-                },
-                "Stock": {
-                  "style": "form"
-                },
-                "IdUsuario": {
-                  "style": "form"
-                },
-                "Imagen": {
-                  "style": "form"
-                }
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success"
@@ -342,6 +186,28 @@
         }
       },
       "delete": {
+        "tags": [
+          "Producto"
+        ],
+        "parameters": [
+          {
+            "name": "sku",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Producto/{sku}/imagen": {
+      "get": {
         "tags": [
           "Producto"
         ],

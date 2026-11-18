@@ -1,4 +1,4 @@
-﻿using MiWebAPI.Models;
+using MiWebAPI.Models;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -38,7 +38,9 @@ namespace MiWebAPI.Data
                 }
                 catch (Exception)
                 {
-                    objeto = new Usuario(); // Devuelve un objeto vacío si falla la conexión
+                    // Se relanza para informar el error real (conexión, columna faltante, etc.)
+                    // en lugar de confundirlo con "usuario o contraseña incorrectos".
+                    throw;
                 }
             }
             return objeto;
