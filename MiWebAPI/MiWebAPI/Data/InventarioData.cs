@@ -6,9 +6,12 @@ namespace MiWebAPI.Data
 {
     // Tablas usadas (según el diagrama E-R): CATEGORIA, PRODUCTO, VENTA, DETALLE_VENTA.
     // MOVIMIENTOS es adicional: guarda el historial de entradas, salidas, ventas y registros.
+    // Todas las fechas nuevas se guardan en UTC (así es igual en cualquier computadora y en Azure);
+    // el navegador las muestra en la hora local de quien las ve.
     public class InventarioData
     {
         public const int UmbralStockBajo = 5; // Debe coincidir con STOCK_BAJO en wwwroot/js/config.js
+        private const string ZonaHoraria = "Central Standard Time (Mexico)"; // para calcular "ventas de hoy"
         private readonly string conexion;
 
         public InventarioData(IConfiguration configuration)
@@ -88,7 +91,7 @@ namespace MiWebAPI.Data
             using var cmd = new SqlCommand(@"
                 SELECT TOP (@top) m.SKU_CODIGO, m.FECHA, m.TIPO, p.NOMBRE, p.TALLA, m.CANTIDAD, m.STOCK_RESULTANTE
                 FROM MOVIMIENTOS m
-                INNER JOIN PRODUCTO p ON CAST(p.SKU_CODIGO AS VARCHAR(30)) = m.SKU_CODIGO
+                INNER JOIN PRODUCTO p ON CAST(p.SKU_CODIGO AS VARCHAR(50)) = m.SKU_CODIGO
                 WHERE (@sku IS NULL OR m.SKU_CODIGO = @sku)
                 ORDER BY m.FECHA DESC, m.ID_MOVIMIENTO DESC", con);
             cmd.Parameters.AddWithValue("@top", cantidad);
@@ -99,7 +102,7 @@ namespace MiWebAPI.Data
                 lista.Add(new Movimiento
                 {
                     Sku = Txt(r, 0),
-                    Fecha = r.GetDateTime(1),
+                    Fecha = DateTime.SpecifyKind(r.GetDateTime(1), DateTimeKind.Utc), // se envía con "Z" y el navegador la convierte a su hora
                     Tipo = Txt(r, 2),
                     Producto = Txt(r, 3),
                     Talla = Txt(r, 4),
@@ -113,11 +116,13 @@ namespace MiWebAPI.Data
         {
             var resumen = new DashboardResumen();
             using (var con = new SqlConnection(conexion))
-            using (var cmd = new SqlCommand(@"
+            using (var cmd = new SqlCommand($@"
                 SELECT ISNULL(SUM(STOCK), 0) FROM PRODUCTO WHERE ACTIVO = 1;
                 SELECT COUNT(*) FROM PRODUCTO WHERE ACTIVO = 1 AND STOCK <= @umbral;
                 SELECT ISNULL(SUM(CANTIDAD), 0) FROM MOVIMIENTOS
-                WHERE TIPO = 'VENTA' AND CAST(FECHA AS date) = CAST(SYSDATETIME() AS date);", con))
+                WHERE TIPO = 'VENTA'
+                  AND CAST((FECHA AT TIME ZONE 'UTC' AT TIME ZONE '{ZonaHoraria}') AS date)
+                    = CAST((SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE '{ZonaHoraria}') AS date);", con))
             {
                 cmd.Parameters.AddWithValue("@umbral", UmbralStockBajo);
                 await con.OpenAsync();
@@ -148,8 +153,8 @@ namespace MiWebAPI.Data
             string tipo, string sku, int cantidad, int stock, int? idUsuario)
         {
             using var cmd = new SqlCommand(@"
-                INSERT INTO MOVIMIENTOS (TIPO, SKU_CODIGO, CANTIDAD, STOCK_RESULTANTE, ID_USUARIO)
-                VALUES (@tipo, @sku, @cant, @stock, @idu)", con, tx);
+                INSERT INTO MOVIMIENTOS (FECHA, TIPO, SKU_CODIGO, CANTIDAD, STOCK_RESULTANTE, ID_USUARIO)
+                VALUES (SYSUTCDATETIME(), @tipo, @sku, @cant, @stock, @idu)", con, tx);
             cmd.Parameters.AddWithValue("@tipo", tipo);
             cmd.Parameters.AddWithValue("@sku", sku);
             cmd.Parameters.AddWithValue("@cant", cantidad);
@@ -158,7 +163,7 @@ namespace MiWebAPI.Data
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task<RespuestaOperacion> CrearProducto(ProductoForm f, string? imagen)
+        public async Task<RespuestaOperacion> CrearProducto(ProductoForm f, string? imagenUrl)
         {
             try
             {
@@ -178,14 +183,14 @@ namespace MiWebAPI.Data
 
                 string sql = activo == null
                     ? @"INSERT INTO PRODUCTO (SKU_CODIGO, NOMBRE, DESCRIPCION, ID_CATEGORIA, TALLA, COLOR, PRECIO, STOCK, IMAGEN_URL, ACTIVO, FECHA_ULTIMA_MODIFICACION)
-                        VALUES (@sku, @nombre, @desc, @cat, @talla, @color, @precio, @stock, @img, 1, SYSDATETIME())"
+                        VALUES (@sku, @nombre, @desc, @cat, @talla, @color, @precio, @stock, @img, 1, SYSUTCDATETIME())"
                     : @"UPDATE PRODUCTO SET NOMBRE = @nombre, DESCRIPCION = @desc, ID_CATEGORIA = @cat, TALLA = @talla, COLOR = @color,
-                               PRECIO = @precio, STOCK = @stock, IMAGEN_URL = @img, ACTIVO = 1, FECHA_ULTIMA_MODIFICACION = SYSDATETIME()
+                               PRECIO = @precio, STOCK = @stock, IMAGEN_URL = @img, ACTIVO = 1, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
                         WHERE SKU_CODIGO = @sku";
                 using (var cmd = new SqlCommand(sql, con, tx))
                 {
                     AgregarParametros(cmd, sku, f);
-                    cmd.Parameters.AddWithValue("@img", (object?)imagen ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@img", (object?)imagenUrl ?? DBNull.Value);
                     await cmd.ExecuteNonQueryAsync();
                 }
 
@@ -199,7 +204,7 @@ namespace MiWebAPI.Data
             }
         }
 
-        public async Task<RespuestaOperacion> EditarProducto(string sku, ProductoForm f, string? imagenNueva)
+        public async Task<RespuestaOperacion> EditarProducto(string sku, ProductoForm f, string? imagenUrlNueva)
         {
             try
             {
@@ -220,11 +225,11 @@ namespace MiWebAPI.Data
                     UPDATE PRODUCTO
                     SET NOMBRE = @nombre, DESCRIPCION = @desc, ID_CATEGORIA = @cat, TALLA = @talla, COLOR = @color,
                         PRECIO = @precio, STOCK = @stock, IMAGEN_URL = COALESCE(@img, IMAGEN_URL),
-                        FECHA_ULTIMA_MODIFICACION = SYSDATETIME()
+                        FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
                     WHERE SKU_CODIGO = @sku", con, tx))
                 {
                     AgregarParametros(cmd, sku, f);
-                    cmd.Parameters.Add("@img", SqlDbType.VarChar, 250).Value = (object?)imagenNueva ?? DBNull.Value;
+                    cmd.Parameters.Add("@img", SqlDbType.VarChar, 500).Value = (object?)imagenUrlNueva ?? DBNull.Value;
                     await cmd.ExecuteNonQueryAsync();
                 }
 
@@ -246,7 +251,7 @@ namespace MiWebAPI.Data
             try
             {
                 using var con = new SqlConnection(conexion);
-                using var cmd = new SqlCommand(@"UPDATE PRODUCTO SET ACTIVO = 0, FECHA_ULTIMA_MODIFICACION = SYSDATETIME()
+                using var cmd = new SqlCommand(@"UPDATE PRODUCTO SET ACTIVO = 0, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
                                                  WHERE SKU_CODIGO = @sku AND ACTIVO = 1", con);
                 cmd.Parameters.AddWithValue("@sku", sku);
                 await con.OpenAsync();
@@ -275,7 +280,7 @@ namespace MiWebAPI.Data
                 using var tx = con.BeginTransaction();
 
                 using var cmd = new SqlCommand(@"
-                    UPDATE PRODUCTO SET STOCK = STOCK + @delta, FECHA_ULTIMA_MODIFICACION = SYSDATETIME()
+                    UPDATE PRODUCTO SET STOCK = STOCK + @delta, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
                     OUTPUT INSERTED.STOCK
                     WHERE SKU_CODIGO = @sku AND ACTIVO = 1 AND STOCK + @delta >= 0", con, tx);
                 cmd.Parameters.AddWithValue("@delta", m.Tipo == "ENTRADA" ? m.Cantidad : -m.Cantidad);
@@ -316,7 +321,7 @@ namespace MiWebAPI.Data
                 using (var cmd = new SqlCommand(@"
                     INSERT INTO VENTA (ID_USUARIO, FECHA_VENTA, TOTAL, METODO_PAGO, FECHA_ULTIMA_MODIFICACION)
                     OUTPUT INSERTED.ID_VENTA
-                    VALUES (@u, SYSDATETIME(), 0, @m, SYSDATETIME())", con, tx))
+                    VALUES (@u, SYSUTCDATETIME(), 0, @m, SYSUTCDATETIME())", con, tx))
                 {
                     cmd.Parameters.AddWithValue("@u", v.IdUsuario.Value);
                     cmd.Parameters.AddWithValue("@m", v.MetodoPago);
@@ -330,7 +335,7 @@ namespace MiWebAPI.Data
                     decimal precio = 0;
                     // Descuenta el stock de forma atómica; el precio se toma de la base de datos, no del navegador.
                     using (var cmd = new SqlCommand(@"
-                        UPDATE PRODUCTO SET STOCK = STOCK - @c, FECHA_ULTIMA_MODIFICACION = SYSDATETIME()
+                        UPDATE PRODUCTO SET STOCK = STOCK - @c, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
                         OUTPUT INSERTED.STOCK, INSERTED.PRECIO
                         WHERE SKU_CODIGO = @sku AND ACTIVO = 1 AND STOCK >= @c", con, tx))
                     {
@@ -348,7 +353,7 @@ namespace MiWebAPI.Data
                     decimal subtotal = precio * item.Cantidad;
                     using (var det = new SqlCommand(@"
                         INSERT INTO DETALLE_VENTA (ID_VENTA, SKU_CODIGO, CANTIDAD, PRECIO_UNITARIO, SUBTOTAL, FECHA_ULTIMA_MODIFICACION)
-                        VALUES (@v, @sku, @c, @pr, @sub, SYSDATETIME())", con, tx))
+                        VALUES (@v, @sku, @c, @pr, @sub, SYSUTCDATETIME())", con, tx))
                     {
                         det.Parameters.AddWithValue("@v", idVenta);
                         det.Parameters.AddWithValue("@sku", item.Sku);
@@ -362,7 +367,7 @@ namespace MiWebAPI.Data
                     total += subtotal;
                 }
 
-                using (var upd = new SqlCommand("UPDATE VENTA SET TOTAL = @t, FECHA_ULTIMA_MODIFICACION = SYSDATETIME() WHERE ID_VENTA = @v", con, tx))
+                using (var upd = new SqlCommand("UPDATE VENTA SET TOTAL = @t, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME() WHERE ID_VENTA = @v", con, tx))
                 {
                     upd.Parameters.AddWithValue("@t", total);
                     upd.Parameters.AddWithValue("@v", idVenta);
