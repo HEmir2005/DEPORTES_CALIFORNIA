@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiWebAPI.Data;
 using MiWebAPI.Models;
@@ -6,6 +8,7 @@ namespace MiWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProductoController : ControllerBase
     {
         private static readonly Dictionary<string, string> TiposImagen = new()
@@ -25,6 +28,8 @@ namespace MiWebAPI.Controllers
             _data = data;
             _imagenes = imagenes;
         }
+
+        private int? UsuarioActualId => int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
 
         [HttpGet]
         public async Task<IActionResult> Listar() => Ok(await _data.ListarProductos());
@@ -53,6 +58,7 @@ namespace MiWebAPI.Controllers
         [HttpGet("{sku}/movimientos")]
         public async Task<IActionResult> Movimientos(string sku) => Ok(await _data.ListarMovimientos(sku, 50));
 
+        [Authorize(Roles = Roles.Administrador)]
         [HttpPost]
         public async Task<IActionResult> Crear()
         {
@@ -73,19 +79,21 @@ namespace MiWebAPI.Controllers
                 string talla = form["talla"].ToString()?.Trim() ?? "";
                 string color = form["color"].ToString()?.Trim() ?? "";
 
-                if (!decimal.TryParse(form["precio"], out decimal precio))
+                if (!decimal.TryParse(form["precio"], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out decimal precio))
                     return Ok(Falla("El precio no es válido."));
 
                 if (!int.TryParse(form["stock"], out int stock))
                     return Ok(Falla("El stock no es válido."));
 
-                int? idUsuario = int.TryParse(form["idUsuario"], out int idU) ? idU : null;
+                int? idUsuario = UsuarioActualId;
 
-                if (string.IsNullOrEmpty(sku)) return Ok(Falla("El SKU es obligatorio."));
-                if (nombre.Length > 150) return Ok(Falla("El nombre no puede pasar de 150 caracteres."));
+                var errorCampos = ValidarCampos(sku, nombre, idCategoria, talla, color, precio, stock, true);
+                if (errorCampos != null) return Ok(Falla(errorCampos));
 
                 if (await _data.ObtenerProducto(sku) != null)
-                    return Ok(Falla("Ya existe un producto activo con ese SKU."));
+                    return Ok(Falla("Ya existe un producto activo con ese código (SKU)."));
+                if (await _data.ExisteSku(sku))
+                    return Ok(Falla("Ese código (SKU) pertenece a un producto dado de baja. Reactívalo desde Inventario > Dados de baja."));
 
                 IFormFile? archivoImagen = form.Files["Imagen"] ?? (form.Files.Count > 0 ? form.Files[0] : null);
 
@@ -125,6 +133,7 @@ namespace MiWebAPI.Controllers
             }
         }
 
+        [Authorize(Roles = Roles.Administrador)]
         [HttpPut("{sku}")]
         public async Task<IActionResult> Editar(string sku)
         {
@@ -144,15 +153,16 @@ namespace MiWebAPI.Controllers
                 string talla = form["talla"].ToString()?.Trim() ?? "";
                 string color = form["color"].ToString()?.Trim() ?? "";
 
-                if (!decimal.TryParse(form["precio"], out decimal precio))
+                if (!decimal.TryParse(form["precio"], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out decimal precio))
                     return Ok(Falla("El precio no es válido."));
 
                 if (!int.TryParse(form["stock"], out int stock))
                     return Ok(Falla("El stock no es válido."));
 
-                int? idUsuario = int.TryParse(form["idUsuario"], out int idU) ? idU : null;
+                int? idUsuario = UsuarioActualId;
 
-                if (nombre.Length > 150) return Ok(Falla("El nombre no puede pasar de 150 caracteres."));
+                var errorCampos = ValidarCampos(sku, nombre, idCategoria, talla, color, precio, stock, false);
+                if (errorCampos != null) return Ok(Falla(errorCampos));
 
                 IFormFile? archivoImagen = form.Files["Imagen"] ?? (form.Files.Count > 0 ? form.Files[0] : null);
 
@@ -193,16 +203,51 @@ namespace MiWebAPI.Controllers
             }
         }
 
+        [Authorize(Roles = Roles.Administrador)]
+        [HttpGet("inactivos")]
+        public async Task<IActionResult> Inactivos() => Ok(await _data.ListarProductosInactivos());
+
+        [Authorize(Roles = Roles.Administrador)]
+        [HttpPost("{sku}/reactivar")]
+        public async Task<IActionResult> Reactivar(string sku) => Ok(await _data.ReactivarProducto(sku));
+
+        [Authorize(Roles = Roles.Administrador)]
         [HttpDelete("{sku}")]
         public async Task<IActionResult> Eliminar(string sku) => Ok(await _data.EliminarProducto(sku));
 
+        [Authorize(Roles = Roles.Administrador)]
         [HttpPost("{sku}/movimiento")]
-        public async Task<IActionResult> Mover(string sku, [FromBody] MovimientoRequest movimiento) =>
-            Ok(await _data.MoverStock(sku, movimiento));
+        public async Task<IActionResult> Mover(string sku, [FromBody] MovimientoRequest movimiento)
+        {
+            movimiento.IdUsuario = UsuarioActualId; // quien hace el movimiento es quien tiene la sesión
+            return Ok(await _data.MoverStock(sku, movimiento));
+        }
 
         // ---------- Utilidades ----------
 
         private static RespuestaOperacion Falla(string mensaje) => new() { NumeroError = 1, Respuesta = mensaje };
+
+        // Reglas de los datos del producto (mismos límites que las columnas de la base de datos).
+        private static string? ValidarCampos(string sku, string nombre, int idCategoria, string talla, string color, decimal precio, int stock, bool validarSku)
+        {
+            if (validarSku)
+            {
+                if (sku.Length == 0) return "El código (SKU) es obligatorio.";
+                if (!System.Text.RegularExpressions.Regex.IsMatch(sku, @"^[A-Za-z0-9._-]{1,30}$"))
+                    return "El código (SKU) solo puede tener letras, números, punto, guion y guion bajo (máximo 30).";
+            }
+            if (nombre.Length == 0) return "El nombre es obligatorio.";
+            if (nombre.Length > 150) return "El nombre no puede pasar de 150 caracteres.";
+            if (idCategoria <= 0) return "Selecciona una categoría.";
+            if (talla.Length > 10) return "La talla no puede pasar de 10 caracteres.";
+            if (color.Length > 30) return "El color no puede pasar de 30 caracteres.";
+            if (precio <= 0) return "El precio debe ser mayor a cero.";
+            if (precio > 99999999m) return "El precio es demasiado alto.";
+            if (decimal.Round(precio, 2) != precio) return "El precio solo puede tener dos decimales.";
+            if (stock < 0) return "Las unidades no pueden ser negativas.";
+            if (stock > 100000) return "Las unidades no pueden pasar de 100,000.";
+            return null;
+        }
 
         private static string UrlImagen(string sku) => $"api/Producto/{Uri.EscapeDataString(sku)}/imagen?v={Guid.NewGuid():N}";
 

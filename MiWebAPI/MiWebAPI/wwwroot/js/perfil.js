@@ -14,7 +14,7 @@ porId("formUsuario").addEventListener("submit", async (e) => {
     const nuevo = porId("nuevoNombre").value.trim();
     if (!nuevo) return aviso("Escribe el nuevo nombre de usuario.", "warning");
     try {
-        const r = await api("/api/Auth/cambiar-usuario", jsonOpts("POST", {
+        const r = await api(API_URL + "/Auth/cambiar-usuario", jsonOpts("POST", {
             nombreActual: usuario.nombre, nuevoNombre: nuevo, contrasena: porId("confirmaContrasena").value
         }));
         guardarUsuario({ ...usuario, nombre: nuevo });
@@ -35,7 +35,7 @@ porId("formContrasena").addEventListener("submit", async (e) => {
     if (nueva.length < 6) return aviso("La nueva contraseña debe tener al menos 6 caracteres.", "warning");
     if (nueva !== porId("contrasenaRepetida").value) return aviso("Las contraseñas nuevas no coinciden.", "warning");
     try {
-        const r = await api("/api/Auth/cambiar-contrasena", jsonOpts("POST", {
+        const r = await api(API_URL + "/Auth/cambiar-contrasena", jsonOpts("POST", {
             nombreActual: usuario.nombre, contrasena: porId("contrasenaActual").value, nuevaContrasena: nueva
         }));
         modalContrasena.hide();

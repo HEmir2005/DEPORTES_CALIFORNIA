@@ -5,7 +5,61 @@ const selCategoria = porId("idCategoria");
 const inputImagen = porId("imagen");
 const vistaPrevia = porId("imgPreview");
 const btnGuardar = porId("btnGuardar");
+const errorForm = porId("errorForm");
 
+// Solo el administrador agrega, edita o da de baja productos.
+if (!esAdmin()) denegarAcceso("inventario.html");
+
+// ---------- Validaciones: cada una devuelve el mensaje de error, o "" si el dato es correcto ----------
+const validadores = {
+    sku: (v) => {
+        if (skuEditar) return ""; // el código no se cambia al editar
+        if (v === "") return "Escribe el código del producto.";
+        if (!/^[A-Za-z0-9._-]+$/.test(v)) return "Usa solo letras, números, punto, guion o guion bajo (sin espacios).";
+        if (v.length > 30) return "El código no puede pasar de 30 caracteres.";
+        return "";
+    },
+    nombre: (v) => (v === "" ? "Escribe el nombre del producto." : v.length > 150 ? "El nombre no puede pasar de 150 caracteres." : ""),
+    idCategoria: (v) => (v === "" ? "Selecciona una categoría." : ""),
+    talla: (v) => (v.length > 10 ? "La talla no puede pasar de 10 caracteres." : ""),
+    color: (v) => (v.length > 30 ? "El color no puede pasar de 30 caracteres." : ""),
+    precio: (v) => {
+        if (v === "") return "Escribe el precio.";
+        const n = Number(v);
+        if (!(n > 0)) return "El precio debe ser mayor a cero.";
+        if (n > 99999999) return "El precio es demasiado alto.";
+        if (!/^\d+(\.\d{1,2})?$/.test(v)) return "El precio solo puede tener dos decimales.";
+        return "";
+    },
+    stock: (v) => {
+        if (v === "") return "Escribe las unidades (0 si no hay).";
+        const n = Number(v);
+        if (!Number.isInteger(n) || n < 0) return "Las unidades deben ser un número entero, 0 o mayor.";
+        if (n > 100000) return "Las unidades no pueden pasar de 100,000.";
+        return "";
+    }
+};
+
+function validarCampo(nombre) {
+    const campo = form.elements[nombre];
+    return marcarCampo(campo, validadores[nombre](campo.value.trim()));
+}
+
+for (const nombre of Object.keys(validadores)) {
+    const campo = form.elements[nombre];
+    campo.addEventListener("blur", () => validarCampo(nombre));
+    campo.addEventListener(campo.tagName === "SELECT" ? "change" : "input", () => {
+        if (campo.classList.contains("is-invalid")) validarCampo(nombre); // se corrige en cuanto se escribe bien
+    });
+}
+
+function mostrarError(texto) {
+    errorForm.innerHTML = `<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> ${esc(texto)}`;
+    errorForm.classList.remove("d-none");
+    errorForm.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ---------- Imagen ----------
 function mostrarVistaPrevia(src) {
     vistaPrevia.innerHTML = `<img src="${esc(src)}" alt="Vista previa">`;
 }
@@ -61,63 +115,101 @@ inputImagen.addEventListener("change", async () => {
     }
 });
 
+// ---------- Pantalla de confirmación (igual que la de venta) ----------
+function mostrarExito(titulo, mensaje, producto) {
+    porId("exitoTitulo").textContent = titulo;
+    porId("exitoMensaje").textContent = mensaje;
+    const ficha = porId("exitoFicha");
+    const verProducto = porId("exitoVer");
+    ficha.classList.toggle("d-none", !producto);
+    verProducto.classList.toggle("d-none", !producto);
+    if (producto) {
+        porId("exitoImagen").innerHTML = imgProducto(producto, "table-img", true);
+        porId("exitoNombre").textContent = producto.nombre;
+        porId("exitoDatos").innerHTML =
+            `Código: <b>${esc(producto.sku)}</b> | ${esc(producto.categoria)}<br>` +
+            `Talla: ${esc(producto.talla) || "-"} | Color: ${esc(producto.color) || "-"}<br>` +
+            `Precio: <b>${moneda(producto.precio)}</b> | Stock: <b>${producto.stock}</b>`;
+        verProducto.href = `detalle-producto.html?sku=${encodeURIComponent(producto.sku)}`;
+    }
+    new bootstrap.Modal(porId("modalExito")).show();
+}
+
+// ---------- Guardar ----------
 form.addEventListener("submit", async (evento) => {
     evento.preventDefault();
-    if (!form.checkValidity()) {
-        form.classList.add("was-validated");
+    errorForm.classList.add("d-none");
+
+    const conError = Object.keys(validadores).filter((nombre) => !validarCampo(nombre));
+    if (conError.length) {
+        mostrarError(conError.length === 1
+            ? "Revisa el campo marcado en rojo."
+            : `Revisa los ${conError.length} campos marcados en rojo.`);
+        form.elements[conError[0]].focus();
         return;
     }
+
     const datos = new FormData(form);
     datos.append("idUsuario", obtenerUsuario()?.idUsuario ?? "");
 
     btnGuardar.disabled = true;
+    btnGuardar.textContent = "Guardando...";
     try {
-        const urlDestino = skuEditar ? `/api/Producto/${encodeURIComponent(skuEditar)}` : "/api/Producto";
-        const metodo = skuEditar ? "PUT" : "POST";
-
-        // Usamos fetch nativo para FormData para que el navegador asigne correctamente multipart/form-data
-        const respuestaHttp = await fetch(urlDestino, {
-            method: metodo,
-            body: datos
-        });
-
+        const urlDestino = skuEditar ? `${API_URL}/Producto/${encodeURIComponent(skuEditar)}` : API_URL + "/Producto";
+        // fetch directo para que el navegador arme el multipart/form-data con su separador
+        const respuestaHttp = await fetch(urlDestino, { method: skuEditar ? "PUT" : "POST", body: datos });
+        if (respuestaHttp.status === 401) { sesionExpirada(); return; }
+        if (respuestaHttp.status === 403) throw new Error("No tienes permiso para realizar esta acción.");
         const r = await respuestaHttp.json();
-        if (!respuestaHttp.ok || !r.isSuccess) {
-            throw new Error(r.respuesta || "Error al procesar la solicitud.");
-        }
+        if (!respuestaHttp.ok || !r.isSuccess) throw new Error(r.respuesta || "Error al procesar la solicitud.");
 
-        aviso(r.respuesta);
-        setTimeout(() => (location.href = "inventario.html"), 900);
+        // Se consulta el producto guardado para mostrarlo en la pantalla de confirmación.
+        const sku = skuEditar || String(datos.get("sku")).trim();
+        let guardado = null;
+        try { guardado = await api(`${API_URL}/Producto/${encodeURIComponent(sku)}`); } catch { /* se muestra sin ficha */ }
+        mostrarExito(
+            skuEditar ? "Cambios guardados" : "Producto registrado",
+            skuEditar ? "El producto se actualizó correctamente." : "El producto ya aparece en el inventario.",
+            guardado);
     } catch (error) {
-        aviso(error.message, "danger");
+        mostrarError(error.message);
         btnGuardar.disabled = false;
+        btnGuardar.textContent = skuEditar ? "Guardar cambios" : "Guardar";
     }
 });
 
+// ---------- Dar de baja ----------
 porId("btnEliminar").addEventListener("click", async () => {
-    if (!confirm("¿Seguro que deseas eliminar este producto? Dejará de aparecer en el inventario.")) return;
+    const acepta = await confirmarAccion({
+        titulo: "Dar de baja el producto",
+        mensaje: "El producto dejará de aparecer en el inventario y en las ventas, pero se conserva su historial. " +
+                 "Podrás reactivarlo desde Inventario > Dados de baja.",
+        boton: "Dar de baja",
+        tipo: "red"
+    });
+    if (!acepta) return;
     try {
-        const r = await api(`/api/Producto/${encodeURIComponent(skuEditar)}`, { method: "DELETE" });
-        aviso(r.respuesta);
-        setTimeout(() => (location.href = "inventario.html"), 900);
+        const r = await api(`${API_URL}/Producto/${encodeURIComponent(skuEditar)}`, { method: "DELETE" });
+        mostrarExito("Producto dado de baja", r.respuesta || "El producto ya no aparece en el inventario.", null);
     } catch (error) {
-        aviso(error.message, "danger");
+        mostrarError(error.message);
     }
 });
 
 (async function () {
     try {
-        const categorias = await api("/api/Producto/categorias");
-        selCategoria.innerHTML = '<option value="" selected disabled>Selecciona...</option>' +
+        const categorias = await api(API_URL + "/Producto/categorias");
+        selCategoria.innerHTML = '<option value="" selected>Selecciona una categoría...</option>' +
             categorias.map((c) => `<option value="${c.idCategoria}">${esc(c.nombre)}</option>`).join("");
 
         if (skuEditar) {
             porId("tituloForm").textContent = "Editar producto";
             btnGuardar.textContent = "Guardar cambios";
             porId("btnEliminar").classList.remove("d-none");
-            llenar(await api(`/api/Producto/${encodeURIComponent(skuEditar)}`));
+            llenar(await api(`${API_URL}/Producto/${encodeURIComponent(skuEditar)}`));
         }
     } catch (error) {
+        if (/no encontrado/i.test(error.message)) return mostrarNoEncontrado("Ese producto no existe o está dado de baja.");
         aviso(error.message, "danger");
     }
 })();

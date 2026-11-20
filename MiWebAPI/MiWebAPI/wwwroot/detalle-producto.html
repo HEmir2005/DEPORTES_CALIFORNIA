@@ -57,12 +57,13 @@
             <hr class="my-4">
 
             <h3 class="h5 fw-bold mb-3">Historial de movimientos</h3>
-            <div class="table-responsive border rounded-3" style="max-height:320px">
+            <div class="table-responsive border rounded-3">
                 <table class="table table-sm mb-0 align-middle">
-                    <thead class="table-light"><tr><th>Fecha</th><th>Movimiento</th><th class="text-end">Cant.</th><th class="text-end">Stock</th></tr></thead>
+                    <thead class="table-light"><tr><th>Fecha</th><th>Movimiento</th><th class="text-end">Cant.</th><th class="text-end">Stock</th><th>Usuario</th></tr></thead>
                     <tbody id="tablaMov"></tbody>
                 </table>
             </div>
+            <div id="paginacionMov"></div>
         </div>
 
         <div class="modal fade" id="modalMov" tabindex="-1" aria-hidden="true">
@@ -71,7 +72,9 @@
                     <div class="modal-header"><h5 class="modal-title fw-bold" id="tituloMov"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
                     <div class="modal-body">
                         <label class="field-label" for="cantidadMov">Cantidad de unidades</label>
-                        <input type="number" id="cantidadMov" class="form-control pill-field" min="1" step="1">
+                        <input type="number" id="cantidadMov" class="form-control pill-field" min="1" step="1" inputmode="numeric">
+                        <div class="invalid-feedback"></div>
+                        <div class="form-text" id="stockMov"></div>
                     </div>
                     <div class="modal-footer"><button type="button" id="btnGuardarMov" class="btn btn-pill btn-green">Guardar</button></div>
                 </div>

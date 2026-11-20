@@ -13,6 +13,8 @@
     <main class="container-fluid p-3 p-md-4 dashboard-content">
         <div class="form-card">
             <h1 class="h3 fw-bold mb-3">Resumen de compra</h1>
+            <div id="alertaVenta" class="alert alert-danger d-none" role="alert"></div>
+
             <div class="row g-4">
                 <div class="col-12 col-lg-8">
                     <div class="table-responsive">
@@ -21,15 +23,23 @@
                             <tbody id="tablaResumen"></tbody>
                         </table>
                     </div>
-                    <a href="registrar-venta.html" class="btn btn-outline-dark rounded-pill mt-3"><i class="bi bi-arrow-left"></i> Modificar carrito</a>
+                    <a href="registrar-venta.html" class="btn btn-outline-dark mt-3"><i class="bi bi-arrow-left" aria-hidden="true"></i> Modificar carrito</a>
                 </div>
 
                 <div class="col-12 col-lg-4 d-flex flex-column gap-3">
                     <div class="total-box"><div>Total a pagar</div><div class="monto" id="totalPagar">$0.00</div></div>
-                    <div class="row g-2">
-                        <div class="col-6"><button type="button" class="pay-btn transferencia" data-metodo="TRANSFERENCIA"><i class="bi bi-phone"></i>Transferencia</button></div>
-                        <div class="col-6"><button type="button" class="pay-btn efectivo" data-metodo="EFECTIVO"><i class="bi bi-cash-stack"></i>Efectivo</button></div>
+
+                    <div>
+                        <p class="field-label mb-2">¿Cómo pagó el cliente? *</p>
+                        <div class="row g-2" id="opcionesPago">
+                            <div class="col-6"><button type="button" class="pay-btn transferencia" data-metodo="TRANSFERENCIA"><i class="bi bi-phone" aria-hidden="true"></i>Transferencia</button></div>
+                            <div class="col-6"><button type="button" class="pay-btn efectivo" data-metodo="EFECTIVO"><i class="bi bi-cash-stack" aria-hidden="true"></i>Efectivo</button></div>
+                        </div>
+                        <div id="errorPago" class="text-danger fw-semibold mt-2 d-none" role="alert">
+                            <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i> Selecciona cómo pagó el cliente.
+                        </div>
                     </div>
+
                     <button type="button" id="btnConfirmar" class="btn btn-pill btn-blue py-3">Confirmar venta</button>
                 </div>
             </div>
@@ -37,14 +47,15 @@
 
         <div class="modal fade" id="modalExito" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-3 border-dark rounded-4 text-center p-3">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size:3.5rem"></i>
+                <div class="modal-content text-center p-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size:3.5rem" aria-hidden="true"></i>
                     <h2 class="h4 fw-bold">Venta registrada</h2>
                     <p class="mb-1">Folio <b id="folio"></b></p>
-                    <p>Total cobrado: <b id="totalFinal"></b></p>
-                    <div class="d-flex justify-content-center gap-2">
+                    <p class="mb-1">Total de la venta: <b id="totalFinal"></b></p>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
                         <a href="registrar-venta.html" class="btn btn-pill btn-green">Nueva venta</a>
-                        <a href="index.html" class="btn btn-pill btn-blue">Ir al inicio</a>
+                        <a href="ventas.html" class="btn btn-pill btn-blue">Ver historial</a>
+                        <a href="index.html" class="btn btn-outline-dark">Ir al inicio</a>
                     </div>
                 </div>
             </div>

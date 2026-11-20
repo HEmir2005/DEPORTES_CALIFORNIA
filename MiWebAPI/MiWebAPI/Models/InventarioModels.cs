@@ -41,7 +41,7 @@ namespace MiWebAPI.Models
                 return "El SKU solo puede tener letras, números, punto, guion y guion bajo (máximo 30).";
             if (string.IsNullOrWhiteSpace(Nombre)) return "El nombre es obligatorio.";
             if (IdCategoria <= 0) return "Selecciona una categoría.";
-            if (Precio < 0) return "El precio no puede ser negativo.";
+            if (Precio <= 0) return "El precio debe ser mayor a cero.";
             if (Stock < 0) return "Las unidades no pueden ser negativas.";
             return null;
         }
@@ -56,6 +56,7 @@ namespace MiWebAPI.Models
         public string Talla { get; set; } = string.Empty;
         public int Cantidad { get; set; }
         public int StockResultante { get; set; }
+        public string Usuario { get; set; } = string.Empty;
     }
 
     public class MovimientoRequest
@@ -86,6 +87,31 @@ namespace MiWebAPI.Models
         public decimal VentasHoyMonto { get; set; }
         public int VentasHoyCantidad { get; set; }
         public List<Movimiento> UltimosMovimientos { get; set; } = new();
+    }
+
+    public class VentaLinea
+    {
+        public string Sku { get; set; } = string.Empty;
+        public string Producto { get; set; } = string.Empty;
+        public string Talla { get; set; } = string.Empty;
+        public int Cantidad { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal Subtotal { get; set; }
+    }
+
+    public class VentaResumen
+    {
+        public int IdVenta { get; set; }
+        public DateTime Fecha { get; set; }
+        public decimal Total { get; set; }
+        public string MetodoPago { get; set; } = string.Empty;
+        public string Vendedor { get; set; } = string.Empty;
+        public int Articulos { get; set; }
+    }
+
+    public class VentaDetalle : VentaResumen
+    {
+        public List<VentaLinea> Lineas { get; set; } = new();
     }
 
     public class CambioCredenciales

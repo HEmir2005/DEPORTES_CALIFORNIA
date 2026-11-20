@@ -89,9 +89,10 @@ namespace MiWebAPI.Data
             var lista = new List<Movimiento>();
             using var con = new SqlConnection(conexion);
             using var cmd = new SqlCommand(@"
-                SELECT TOP (@top) m.SKU_CODIGO, m.FECHA, m.TIPO, p.NOMBRE, p.TALLA, m.CANTIDAD, m.STOCK_RESULTANTE
+                SELECT TOP (@top) m.SKU_CODIGO, m.FECHA, m.TIPO, p.NOMBRE, p.TALLA, m.CANTIDAD, m.STOCK_RESULTANTE, ISNULL(u.NOMBRE_USUARIO, '')
                 FROM MOVIMIENTOS m
                 INNER JOIN PRODUCTO p ON CAST(p.SKU_CODIGO AS VARCHAR(50)) = m.SKU_CODIGO
+                LEFT JOIN USUARIO u ON u.ID_USUARIO = m.ID_USUARIO
                 WHERE (@sku IS NULL OR m.SKU_CODIGO = @sku)
                 ORDER BY m.FECHA DESC, m.ID_MOVIMIENTO DESC", con);
             cmd.Parameters.AddWithValue("@top", cantidad);
@@ -107,7 +108,8 @@ namespace MiWebAPI.Data
                     Producto = Txt(r, 3),
                     Talla = Txt(r, 4),
                     Cantidad = Convert.ToInt32(r.GetValue(5)),
-                    StockResultante = Convert.ToInt32(r.GetValue(6))
+                    StockResultante = Convert.ToInt32(r.GetValue(6)),
+                    Usuario = Txt(r, 7)
                 });
             return lista;
         }
@@ -137,7 +139,7 @@ namespace MiWebAPI.Data
                 resumen.VentasHoyMonto = Convert.ToDecimal(r.GetValue(0));
                 resumen.VentasHoyCantidad = Convert.ToInt32(r.GetValue(1));
             }
-            resumen.UltimosMovimientos = await ListarMovimientos(null, 5);
+            resumen.UltimosMovimientos = await ListarMovimientos(null, 50);
             return resumen;
         }
 
@@ -178,22 +180,20 @@ namespace MiWebAPI.Data
                 await con.OpenAsync();
                 using var tx = con.BeginTransaction();
 
-                // ¿Ya existe ese SKU? Si fue eliminado antes (ACTIVO = 0) se vuelve a activar con los datos nuevos.
-                object? activo;
+                // El SKU es la clave del producto: no puede repetirse, ni siquiera con uno dado de baja.
+                object? existente;
                 using (var existe = new SqlCommand("SELECT ACTIVO FROM PRODUCTO WITH (UPDLOCK) WHERE SKU_CODIGO = @sku", con, tx))
                 {
                     existe.Parameters.AddWithValue("@sku", sku);
-                    activo = await existe.ExecuteScalarAsync();
+                    existente = await existe.ExecuteScalarAsync();
                 }
-                if (activo != null && Convert.ToBoolean(activo)) return Error("Ya existe un producto activo con ese SKU.");
+                if (existente != null)
+                    return Error(Convert.ToBoolean(existente)
+                        ? "Ya existe un producto activo con ese código (SKU)."
+                        : "Ese código (SKU) pertenece a un producto dado de baja. Reactívalo desde Inventario > Dados de baja.");
 
-                string sql = activo == null
-                    ? @"INSERT INTO PRODUCTO (SKU_CODIGO, NOMBRE, DESCRIPCION, ID_CATEGORIA, TALLA, COLOR, PRECIO, STOCK, IMAGEN_URL, ACTIVO, FECHA_ULTIMA_MODIFICACION)
-                        VALUES (@sku, @nombre, @desc, @cat, @talla, @color, @precio, @stock, @img, 1, SYSUTCDATETIME())"
-                    : @"UPDATE PRODUCTO SET NOMBRE = @nombre, DESCRIPCION = @desc, ID_CATEGORIA = @cat, TALLA = @talla, COLOR = @color,
-                               PRECIO = @precio, STOCK = @stock, IMAGEN_URL = @img, ACTIVO = 1, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
-                        WHERE SKU_CODIGO = @sku";
-                using (var cmd = new SqlCommand(sql, con, tx))
+                using (var cmd = new SqlCommand(@"INSERT INTO PRODUCTO (SKU_CODIGO, NOMBRE, DESCRIPCION, ID_CATEGORIA, TALLA, COLOR, PRECIO, STOCK, IMAGEN_URL, ACTIVO, FECHA_ULTIMA_MODIFICACION)
+                        VALUES (@sku, @nombre, @desc, @cat, @talla, @color, @precio, @stock, @img, 1, SYSUTCDATETIME())", con, tx))
                 {
                     AgregarParametros(cmd, sku, f);
                     cmd.Parameters.AddWithValue("@img", (object?)imagenUrl ?? DBNull.Value);
@@ -263,13 +263,133 @@ namespace MiWebAPI.Data
                 await con.OpenAsync();
                 int filas = await cmd.ExecuteNonQueryAsync();
                 return filas > 0
-                    ? new RespuestaOperacion { NumeroError = 0, Respuesta = "Producto eliminado correctamente." }
+                    ? new RespuestaOperacion { NumeroError = 0, Respuesta = "Producto dado de baja correctamente." }
                     : Error("Producto no encontrado.", 404);
             }
             catch (Exception ex)
             {
                 return Error(ex.Message);
             }
+        }
+
+        // ---------- Bajas, reactivación e historial de ventas ----------
+
+        public async Task<bool> ExisteSku(string sku)
+        {
+            using var con = new SqlConnection(conexion);
+            using var cmd = new SqlCommand("SELECT COUNT(*) FROM PRODUCTO WHERE SKU_CODIGO = @sku", con);
+            cmd.Parameters.AddWithValue("@sku", sku);
+            await con.OpenAsync();
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
+        }
+
+        public async Task<List<Producto>> ListarProductosInactivos()
+        {
+            var lista = new List<Producto>();
+            using var con = new SqlConnection(conexion);
+            using var cmd = new SqlCommand(BaseProducto.Replace("p.ACTIVO = 1", "p.ACTIVO = 0") + " ORDER BY p.NOMBRE", con);
+            await con.OpenAsync();
+            using var r = await cmd.ExecuteReaderAsync();
+            while (await r.ReadAsync()) lista.Add(LeerProducto(r));
+            return lista;
+        }
+
+        public async Task<RespuestaOperacion> ReactivarProducto(string sku)
+        {
+            try
+            {
+                using var con = new SqlConnection(conexion);
+                using var cmd = new SqlCommand(@"UPDATE PRODUCTO SET ACTIVO = 1, FECHA_ULTIMA_MODIFICACION = SYSUTCDATETIME()
+                                                 WHERE SKU_CODIGO = @sku AND ACTIVO = 0", con);
+                cmd.Parameters.AddWithValue("@sku", sku);
+                await con.OpenAsync();
+                int filas = await cmd.ExecuteNonQueryAsync();
+                return filas > 0
+                    ? new RespuestaOperacion { NumeroError = 0, Respuesta = "Producto reactivado correctamente." }
+                    : Error("Producto no encontrado o ya está activo.", 404);
+            }
+            catch (Exception ex)
+            {
+                return Error(ex.Message);
+            }
+        }
+
+        public async Task<List<VentaResumen>> ListarVentas(int? idUsuario = null)
+        {
+            var lista = new List<VentaResumen>();
+            using var con = new SqlConnection(conexion);
+            using var cmd = new SqlCommand(@"
+                SELECT v.ID_VENTA, v.FECHA_VENTA, v.TOTAL, v.METODO_PAGO, ISNULL(u.NOMBRE_USUARIO, ''), ISNULL(SUM(d.CANTIDAD), 0)
+                FROM VENTA v
+                LEFT JOIN USUARIO u ON u.ID_USUARIO = v.ID_USUARIO
+                LEFT JOIN DETALLE_VENTA d ON d.ID_VENTA = v.ID_VENTA
+                WHERE (@u IS NULL OR v.ID_USUARIO = @u)
+                GROUP BY v.ID_VENTA, v.FECHA_VENTA, v.TOTAL, v.METODO_PAGO, u.NOMBRE_USUARIO
+                ORDER BY v.FECHA_VENTA DESC, v.ID_VENTA DESC", con);
+            cmd.Parameters.AddWithValue("@u", (object?)idUsuario ?? DBNull.Value);
+            await con.OpenAsync();
+            using var r = await cmd.ExecuteReaderAsync();
+            while (await r.ReadAsync())
+                lista.Add(new VentaResumen
+                {
+                    IdVenta = Convert.ToInt32(r.GetValue(0)),
+                    Fecha = DateTime.SpecifyKind(r.GetDateTime(1), DateTimeKind.Utc),
+                    Total = Convert.ToDecimal(r.GetValue(2)),
+                    MetodoPago = Txt(r, 3),
+                    Vendedor = Txt(r, 4),
+                    Articulos = Convert.ToInt32(r.GetValue(5))
+                });
+            return lista;
+        }
+
+        public async Task<VentaDetalle?> ObtenerVenta(int id, int? idUsuario = null)
+        {
+            using var con = new SqlConnection(conexion);
+            await con.OpenAsync();
+
+            VentaDetalle? venta = null;
+            using (var cmd = new SqlCommand(@"
+                SELECT v.ID_VENTA, v.FECHA_VENTA, v.TOTAL, v.METODO_PAGO, ISNULL(u.NOMBRE_USUARIO, '')
+                FROM VENTA v LEFT JOIN USUARIO u ON u.ID_USUARIO = v.ID_USUARIO
+                WHERE v.ID_VENTA = @id AND (@u IS NULL OR v.ID_USUARIO = @u)", con))
+            {
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@u", (object?)idUsuario ?? DBNull.Value);
+                using var r = await cmd.ExecuteReaderAsync();
+                if (await r.ReadAsync())
+                    venta = new VentaDetalle
+                    {
+                        IdVenta = Convert.ToInt32(r.GetValue(0)),
+                        Fecha = DateTime.SpecifyKind(r.GetDateTime(1), DateTimeKind.Utc),
+                        Total = Convert.ToDecimal(r.GetValue(2)),
+                        MetodoPago = Txt(r, 3),
+                        Vendedor = Txt(r, 4)
+                    };
+            }
+            if (venta == null) return null;
+
+            using (var cmd = new SqlCommand(@"
+                SELECT d.SKU_CODIGO, ISNULL(p.NOMBRE, d.SKU_CODIGO), ISNULL(p.TALLA, ''), d.CANTIDAD, d.PRECIO_UNITARIO, d.SUBTOTAL
+                FROM DETALLE_VENTA d
+                LEFT JOIN PRODUCTO p ON CAST(p.SKU_CODIGO AS VARCHAR(50)) = CAST(d.SKU_CODIGO AS VARCHAR(50))
+                WHERE d.ID_VENTA = @id
+                ORDER BY d.ID_DETALLE", con))
+            {
+                cmd.Parameters.AddWithValue("@id", id);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    venta.Lineas.Add(new VentaLinea
+                    {
+                        Sku = Txt(r, 0),
+                        Producto = Txt(r, 1),
+                        Talla = Txt(r, 2),
+                        Cantidad = Convert.ToInt32(r.GetValue(3)),
+                        PrecioUnitario = Convert.ToDecimal(r.GetValue(4)),
+                        Subtotal = Convert.ToDecimal(r.GetValue(5))
+                    });
+            }
+            venta.Articulos = venta.Lineas.Sum(l => l.Cantidad);
+            return venta;
         }
 
         // ---------- Movimientos manuales de stock (botones ENTRADA / SALIDA) ----------
