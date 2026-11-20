@@ -8,7 +8,7 @@ let tipoMov = "ENTRADA";
 async function cargar() {
     try {
         const [p, movimientos] = await Promise.all([api(`/api/Producto/${rutaSku}`), api(`/api/Producto/${rutaSku}/movimientos`)]);
-        porId("dImagen").innerHTML = imgProducto(p, "detail-img");
+        porId("dImagen").innerHTML = imgProducto(p, "detail-img", true);
         porId("dNombre").textContent = p.nombre;
         porId("dSku").textContent = p.sku;
         porId("dCategoria").textContent = p.categoria;
@@ -17,6 +17,7 @@ async function cargar() {
         porId("dColor").textContent = p.color || "-";
         porId("dStock").textContent = p.stock;
         porId("dStock").classList.toggle("text-danger", p.stock <= STOCK_BAJO);
+        porId("dAvisoStock").textContent = p.stock <= STOCK_BAJO ? "Stock bajo" : "";
         porId("dDescripcion").textContent = p.descripcion || "Sin descripción.";
         porId("btnEditar").href = `producto-form.html?sku=${encodeURIComponent(p.sku)}`;
 

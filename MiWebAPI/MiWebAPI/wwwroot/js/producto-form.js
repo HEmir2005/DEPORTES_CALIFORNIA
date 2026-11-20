@@ -19,9 +19,46 @@ function llenar(p) {
     if (p.imagen) mostrarVistaPrevia(p.imagen);
 }
 
-inputImagen.addEventListener("change", () => {
+const MAX_LADO = 1280;            // píxeles del lado más largo de la foto
+const MAX_BYTES = 2 * 1024 * 1024; // límite del servidor
+
+// Las fotos del celular pesan varios MB: se reducen aquí, en el navegador, antes de enviarlas.
+async function prepararImagen(archivo) {
+    const imagen = await createImageBitmap(archivo, { imageOrientation: "from-image" });
+    const escala = Math.min(1, MAX_LADO / Math.max(imagen.width, imagen.height));
+    const lienzo = document.createElement("canvas");
+    lienzo.width = Math.round(imagen.width * escala);
+    lienzo.height = Math.round(imagen.height * escala);
+    const ctx = lienzo.getContext("2d");
+    ctx.fillStyle = "#fff"; // fondo blanco (el JPG no tiene transparencia)
+    ctx.fillRect(0, 0, lienzo.width, lienzo.height);
+    ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+    const blob = await new Promise((resolver) => lienzo.toBlob(resolver, "image/jpeg", 0.85));
+    if (!blob) throw new Error("No se pudo procesar la imagen.");
+    return new File([blob], archivo.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+}
+
+inputImagen.addEventListener("change", async () => {
     const archivo = inputImagen.files[0];
-    if (archivo) mostrarVistaPrevia(URL.createObjectURL(archivo));
+    if (!archivo) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(archivo.type)) {
+        inputImagen.value = "";
+        return aviso("Formato no permitido. Usa JPG, PNG o WEBP.", "warning");
+    }
+    try {
+        let lista = archivo;
+        if (typeof DataTransfer !== "undefined" && typeof createImageBitmap !== "undefined") {
+            lista = await prepararImagen(archivo);
+            const transferencia = new DataTransfer();
+            transferencia.items.add(lista);
+            inputImagen.files = transferencia.files; // el formulario enviará la foto ya reducida
+        }
+        if (lista.size > MAX_BYTES) throw new Error("La imagen pesa más de 2 MB. Elige una más ligera.");
+        mostrarVistaPrevia(URL.createObjectURL(lista));
+    } catch (error) {
+        inputImagen.value = "";
+        aviso(error.message || "No se pudo preparar la imagen.", "danger");
+    }
 });
 
 form.addEventListener("submit", async (evento) => {
@@ -75,8 +112,8 @@ porId("btnEliminar").addEventListener("click", async () => {
             categorias.map((c) => `<option value="${c.idCategoria}">${esc(c.nombre)}</option>`).join("");
 
         if (skuEditar) {
-            porId("tituloForm").textContent = "EDITAR INFORMACIÓN";
-            btnGuardar.textContent = "CONFIRMAR";
+            porId("tituloForm").textContent = "Editar producto";
+            btnGuardar.textContent = "Guardar cambios";
             porId("btnEliminar").classList.remove("d-none");
             llenar(await api(`/api/Producto/${encodeURIComponent(skuEditar)}`));
         }

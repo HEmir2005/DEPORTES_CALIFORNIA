@@ -10,7 +10,7 @@ formLogin.addEventListener("submit", async (evento) => {
     evento.preventDefault();
     mensajeLogin.classList.add("d-none");
     btnLogin.disabled = true;
-    btnLogin.textContent = "INGRESANDO...";
+    btnLogin.textContent = "Ingresando...";
 
     try {
         const respuesta = await fetch("/api/Auth/login", {
@@ -34,6 +34,6 @@ formLogin.addEventListener("submit", async (evento) => {
         mensajeLogin.classList.remove("d-none");
     } finally {
         btnLogin.disabled = false;
-        btnLogin.textContent = "ACCEDER";
+        btnLogin.textContent = "Acceder";
     }
 });

@@ -6,15 +6,15 @@ let productos = [];
 function fila(p) {
     const bajo = p.stock <= STOCK_BAJO ? "text-danger" : "";
     return `<tr>
-        <td>${imgProducto(p, "table-img")}</td>
-        <td class="fw-semibold">${esc(p.sku)}</td>
-        <td class="fw-bold"><a class="text-dark" href="detalle-producto.html?sku=${encodeURIComponent(p.sku)}">${esc(p.nombre)}</a></td>
-        <td>${esc(p.categoria)}</td>
-        <td>${esc(p.talla)}</td>
-        <td>${esc(p.color)}</td>
-        <td class="fw-bold">${moneda(p.precio)}</td>
-        <td class="fw-bold ${bajo}">${p.stock}</td>
-        <td><a class="text-dark" href="producto-form.html?sku=${encodeURIComponent(p.sku)}" title="Editar"><i class="bi bi-pencil fs-5"></i></a></td>
+        <td data-label="">${imgProducto(p, "table-img", true)}</td>
+        <td data-label="Código" class="fw-semibold">${esc(p.sku)}</td>
+        <td data-label="Producto" class="fw-bold"><a class="text-dark" href="detalle-producto.html?sku=${encodeURIComponent(p.sku)}">${esc(p.nombre)}</a></td>
+        <td data-label="Categoría">${esc(p.categoria)}</td>
+        <td data-label="Talla">${esc(p.talla)}</td>
+        <td data-label="Color">${esc(p.color)}</td>
+        <td data-label="Precio" class="fw-bold">${moneda(p.precio)}</td>
+        <td data-label="Stock" class="fw-bold ${bajo}">${p.stock}</td>
+        <td data-label=""><a class="btn btn-outline-dark btn-sm" href="producto-form.html?sku=${encodeURIComponent(p.sku)}"><i class="bi bi-pencil" aria-hidden="true"></i> Editar</a></td>
     </tr>`;
 }
 

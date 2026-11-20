@@ -8,11 +8,11 @@ function pintarResumen() {
         const subtotal = p.precio * cantidad;
         total += subtotal;
         return `<tr>
-            <td>${imgProducto(p, "table-img")}</td>
-            <td class="text-start fw-bold">${esc(p.nombre)}<br><small class="fw-normal">Talla: ${esc(p.talla) || "-"}</small></td>
-            <td>${cantidad}</td>
-            <td>${moneda(p.precio)}</td>
-            <td class="fw-bold">${moneda(subtotal)}</td></tr>`;
+            <td data-label="">${imgProducto(p, "table-img")}</td>
+            <td data-label="Producto" class="text-start fw-bold">${esc(p.nombre)}<br><small class="fw-normal">Talla: ${esc(p.talla) || "-"}</small></td>
+            <td data-label="Cantidad">${cantidad}</td>
+            <td data-label="Precio">${moneda(p.precio)}</td>
+            <td data-label="Subtotal" class="fw-bold">${moneda(subtotal)}</td></tr>`;
     }).join("");
     porId("totalPagar").textContent = moneda(total);
 }

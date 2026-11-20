@@ -34,17 +34,19 @@ function pintarCarrito() {
         total += subtotal;
         return `<div class="cart-row">
             ${imgProducto(p)}
-            <div class="flex-grow-1 lh-sm">
+            <div class="cart-info lh-sm">
                 <div class="fw-bold">${esc(p.nombre)}</div>
                 <small>Talla: ${esc(p.talla) || "-"} | ${moneda(p.precio)}</small>
             </div>
-            <div class="qty-box">
-                <button type="button" data-act="menos" data-id="${esc(p.sku)}" aria-label="Quitar uno">-</button>
-                <span>${item.cantidad}</span>
-                <button type="button" data-act="mas" data-id="${esc(p.sku)}" aria-label="Agregar uno">+</button>
+            <div class="cart-fin">
+                <div class="qty-box">
+                    <button type="button" data-act="menos" data-id="${esc(p.sku)}" aria-label="Quitar uno">-</button>
+                    <span>${item.cantidad}</span>
+                    <button type="button" data-act="mas" data-id="${esc(p.sku)}" aria-label="Agregar uno">+</button>
+                </div>
+                <div class="fw-bold text-end" style="min-width:80px">${moneda(subtotal)}</div>
+                <button type="button" class="btn p-0 border-0 text-danger" data-act="quitar" data-id="${esc(p.sku)}" aria-label="Eliminar del carrito"><i class="bi bi-trash fs-5"></i></button>
             </div>
-            <div class="fw-bold text-end" style="min-width:80px">${moneda(subtotal)}</div>
-            <button type="button" class="btn p-0 border-0 text-danger" data-act="quitar" data-id="${esc(p.sku)}" aria-label="Eliminar del carrito"><i class="bi bi-trash fs-5"></i></button>
         </div>`;
     }).join("") : '<div class="text-muted p-2">El carrito está vacío. Toca un producto para agregarlo.</div>';
 

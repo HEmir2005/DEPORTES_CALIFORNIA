@@ -1,11 +1,9 @@
 wwwroot\bienvenida.html
 wwwroot\confirmar-venta.html
-wwwroot\css\styles.css
 wwwroot\detalle-producto.html
 wwwroot\img\fondo.jpg
 wwwroot\img\logo.png
 wwwroot\img\productos\5578682bb8ce4dd79746c9d24d4386d2.jpeg
-wwwroot\index.html
 wwwroot\inventario.html
 wwwroot\js\auth.js
 wwwroot\js\common.js
@@ -23,3 +21,5 @@ wwwroot\login.html
 wwwroot\perfil.html
 wwwroot\producto-form.html
 wwwroot\registrar-venta.html
+wwwroot\css\styles.css
+wwwroot\index.html

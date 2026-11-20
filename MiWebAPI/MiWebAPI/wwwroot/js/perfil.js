@@ -8,7 +8,6 @@ function pintarPerfil() {
     porId("perfilRol").textContent = u?.rol ?? "";
 }
 
-porId("btnCerrarSesion").addEventListener("click", cerrarSesion);
 
 porId("formUsuario").addEventListener("submit", async (e) => {
     e.preventDefault();

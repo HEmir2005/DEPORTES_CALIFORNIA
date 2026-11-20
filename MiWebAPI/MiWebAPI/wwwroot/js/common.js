@@ -35,9 +35,37 @@ const fechaCorta = (iso) => new Date(iso).toLocaleDateString("es-MX", { day: "2-
 const fechaHora = (iso) => new Date(iso).toLocaleString("es-MX", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 const parametro = (nombre) => new URLSearchParams(location.search).get(nombre);
 
-function imgProducto(p, clase = "") {
-    return `<img src="${esc(p.imagen || IMG_VACIA)}" alt="${esc(p.nombre)}" class="${clase}" onerror="this.onerror=null;this.src=IMG_VACIA">`;
+function imgProducto(p, clase = "", ampliable = false) {
+    const zoom = ampliable && p.imagen ? ' data-zoom="1" title="Toca la imagen para ampliarla"' : "";
+    return `<img src="${esc(p.imagen || IMG_VACIA)}" alt="${esc(p.nombre)}" class="${clase}"${zoom} onerror="this.onerror=null;this.removeAttribute('data-zoom');this.src=IMG_VACIA">`;
 }
+
+// Muestra la imagen completa y grande en una ventana (se abre al tocar una imagen marcada con data-zoom).
+function mostrarImagen(src, titulo) {
+    if (!porId("modalImagen")) {
+        document.body.insertAdjacentHTML("beforeend", `
+            <div class="modal fade" id="modalImagen" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="tituloImagen"></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body text-center"><img id="imagenAmpliada" alt="" class="img-ampliada"></div>
+                    </div>
+                </div>
+            </div>`);
+    }
+    porId("tituloImagen").textContent = titulo || "";
+    porId("imagenAmpliada").src = src;
+    porId("imagenAmpliada").alt = titulo || "";
+    bootstrap.Modal.getOrCreateInstance(porId("modalImagen")).show();
+}
+
+document.addEventListener("click", (e) => {
+    const img = e.target.closest("img[data-zoom]");
+    if (img) mostrarImagen(img.src, img.alt);
+});
 
 function leerCarrito() {
     try { return JSON.parse(sessionStorage.getItem(CARRITO_KEY)) || []; } catch { return []; }

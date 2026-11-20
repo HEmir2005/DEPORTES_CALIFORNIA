@@ -122,6 +122,9 @@ namespace MiWebAPI.Data
                 SELECT ISNULL(SUM(CANTIDAD), 0) FROM MOVIMIENTOS
                 WHERE TIPO = 'VENTA'
                   AND CAST((FECHA AT TIME ZONE 'UTC' AT TIME ZONE '{ZonaHoraria}') AS date)
+                    = CAST((SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE '{ZonaHoraria}') AS date);
+                SELECT ISNULL(SUM(TOTAL), 0), COUNT(*) FROM VENTA
+                WHERE CAST((FECHA_VENTA AT TIME ZONE 'UTC' AT TIME ZONE '{ZonaHoraria}') AS date)
                     = CAST((SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE '{ZonaHoraria}') AS date);", con))
             {
                 cmd.Parameters.AddWithValue("@umbral", UmbralStockBajo);
@@ -130,6 +133,9 @@ namespace MiWebAPI.Data
                 await r.ReadAsync(); resumen.TotalProductos = Convert.ToInt32(r.GetValue(0));
                 await r.NextResultAsync(); await r.ReadAsync(); resumen.StockBajo = Convert.ToInt32(r.GetValue(0));
                 await r.NextResultAsync(); await r.ReadAsync(); resumen.VendidosHoy = Convert.ToInt32(r.GetValue(0));
+                await r.NextResultAsync(); await r.ReadAsync();
+                resumen.VentasHoyMonto = Convert.ToDecimal(r.GetValue(0));
+                resumen.VentasHoyCantidad = Convert.ToInt32(r.GetValue(1));
             }
             resumen.UltimosMovimientos = await ListarMovimientos(null, 5);
             return resumen;
