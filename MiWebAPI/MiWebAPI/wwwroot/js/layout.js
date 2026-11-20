@@ -1,26 +1,40 @@
-// Dibuja el header y la barra inferior en todas las páginas internas y protege la ruta.
-// Cada página indica su sección con <body data-nav="home|inventario">.
+// Dibuja el menú superior (navbar de Bootstrap) en todas las páginas internas y protege la ruta.
+// En celular y tablet se pliega en un botón de hamburguesa.
+// Cada página indica su sección con <body data-nav="home|inventario|ventas|perfil">.
 (function () {
     protegerPagina();
     const activa = document.body.dataset.nav || "";
-    const enlace = (href, icono, texto, clave) =>
-        `<a href="${href}" class="nav-item ${activa === clave ? "active" : ""}"><i class="bi ${icono}"></i><span>${texto}</span></a>`;
+    const enlace = (href, texto, clave) =>
+        `<li class="nav-item"><a class="nav-link ${activa === clave ? "active" : ""}" href="${href}"${activa === clave ? ' aria-current="page"' : ""}>${texto}</a></li>`;
 
     document.body.insertAdjacentHTML("afterbegin", `
-        <header class="figma-header d-flex justify-content-between align-items-center gap-2 px-3 px-md-4">
-            <a href="perfil.html" class="d-flex align-items-center gap-2" title="Mi perfil">
-                <i class="bi bi-person-circle fs-3"></i>
-                <span id="nombreUsuario" class="fw-bold d-none d-sm-inline"></span>
-            </a>
-            <h1 class="mb-0 fw-bold text-uppercase text-center">INVENTARIO DEPORTES CALIFORNIA</h1>
-            <div class="header-logo-container"><img src="img/logo.png" alt="Logo" class="header-logo"></div>
+        <header class="site-header">
+            <nav class="navbar navbar-expand-lg" aria-label="Menú principal">
+                <div class="container-xl">
+                    <a class="navbar-brand site-brand" href="index.html" title="Ir al inicio">
+                        <img src="img/logo.png" alt="Deportes California" class="site-logo">
+                        <span class="d-none d-md-inline">Sistema de inventario</span>
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal"
+                            aria-controls="menuPrincipal" aria-expanded="false" aria-label="Abrir o cerrar el menú">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="menuPrincipal">
+                        <ul class="navbar-nav site-nav me-auto mb-2 mb-lg-0">
+                            ${enlace("index.html", "Inicio", "home")}
+                            ${enlace("inventario.html", "Inventario", "inventario")}
+                            ${enlace("registrar-venta.html", "Registrar venta", "ventas")}
+                            ${enlace("perfil.html", "Mi perfil", "perfil")}
+                        </ul>
+                        <div class="site-user d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 pb-2 pb-lg-0">
+                            <span><i class="bi bi-person-circle" aria-hidden="true"></i> <span id="nombreUsuario"></span></span>
+                            <button type="button" id="btnSalir" class="btn-salir">Cerrar sesión</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
         </header>`);
 
-    document.body.insertAdjacentHTML("beforeend", `
-        <nav class="bottom-nav">
-            ${enlace("index.html", "bi-house-door-fill", "HOME", "home")}
-            ${enlace("inventario.html", "bi-box-seam-fill", "INVENTARIO", "inventario")}
-        </nav>`);
-
+    document.getElementById("btnSalir").addEventListener("click", cerrarSesion);
     mostrarUsuario("nombreUsuario");
 })();

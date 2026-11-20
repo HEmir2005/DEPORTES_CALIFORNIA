@@ -83,6 +83,8 @@ namespace MiWebAPI.Models
         public int TotalProductos { get; set; }
         public int StockBajo { get; set; }
         public int VendidosHoy { get; set; }
+        public decimal VentasHoyMonto { get; set; }
+        public int VentasHoyCantidad { get; set; }
         public List<Movimiento> UltimosMovimientos { get; set; } = new();
     }
 

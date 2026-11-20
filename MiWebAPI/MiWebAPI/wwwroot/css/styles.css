@@ -1,378 +1,255 @@
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* =====================================================================
+   Deportes California - Estilo sobrio y de fácil lectura
+   Texto grande, alto contraste, botones amplios y sin adornos.
+   ===================================================================== */
+:root {
+    --azul-oscuro: #1b365d;
+    --azul: #245a9a;
+    --azul-hover: #1b4a82;
+    --verde: #2f6f3e;
+    --verde-hover: #265a33;
+    --rojo: #a93226;
+    --rojo-hover: #8c2a20;
+    --fondo: #f3f4f6;
+    --borde: #c3c9d2;
+    --borde-campo: #7b8794;
+    --texto: #1f2933;
+    --texto-suave: #52606d;
 }
 
-/* Cuerpo principal abarcando toda la pantalla con el fondo geométrico de Figma */
-body.figma-login-body {
-    background-color: #dcdde6; /* Color de respaldo por si la imagen tarda en cargar */
-    background-image: url('../img/fondo.jpg'); /* Asegúrate de que esta ruta apunte a tu imagen de fondo */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    min-height: 100vh;
-    width: 100%;
-    margin: 0;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    font-family: system-ui, -apple-system, sans-serif;
+html { font-size: 17px; }
+
+body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: var(--texto);
+    background-color: var(--fondo);
+    line-height: 1.5;
 }
 
-/* Franja superior teal del login */
-.login-header {
-    width: 100%;
-    background-color: #17a2b8;
-    color: white;
-    text-align: center;
-    font-weight: bold;
-    padding: 16px 0;
-    font-size: 1.2rem;
-    letter-spacing: 1px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+body.dashboard-body { min-height: 100vh; padding-bottom: 2.5rem; }
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid #e0a800;
+    outline-offset: 2px;
 }
 
-/* Contenedor principal que se acopla al fondo sin parecer tarjeta flotante */
-/* Asegura que el contenedor central sea totalmente transparente */
-.login-card-figma {
-    width: 100%;
-    max-width: 100%;
-    background: transparent !important; /* Elimina el fondo blanco */
-    border: none !important;
-    box-shadow: none !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.rounded-pill { border-radius: 6px !important; }
+
+/* ---------- Encabezado y menú superior (navbar de Bootstrap) ---------- */
+.site-header { background: #fff; border-bottom: 3px solid var(--azul-oscuro); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+.site-header .navbar { padding: .5rem 0; }
+.site-header .container-xl { max-width: 1200px; }
+.site-header .navbar-toggler { border: 2px solid var(--azul-oscuro); padding: .4rem .65rem; min-height: 46px; }
+.site-brand { display: flex; align-items: center; gap: .75rem; color: var(--azul-oscuro); font-weight: 700; font-size: 1.05rem; margin-right: 1.5rem; }
+.site-brand:hover, .site-brand:focus { color: var(--azul-oscuro); }
+.site-logo { height: 48px; width: auto; }
+.site-nav { gap: .25rem; }
+.site-nav .nav-link {
+    color: var(--azul-oscuro); font-weight: 600; padding: .55rem .9rem; border-radius: 6px; border-bottom: 3px solid transparent;
+}
+.site-nav .nav-link:hover { background: #e8eef6; color: var(--azul-oscuro); }
+.site-nav .nav-link.active { background: #dbe6f4; color: var(--azul-oscuro); border-bottom-color: var(--azul); }
+.site-user { font-weight: 600; color: var(--texto); }
+.btn-salir {
+    background: #fff; color: var(--azul-oscuro); border: 1px solid var(--azul-oscuro);
+    border-radius: 6px; padding: .4rem .9rem; font-weight: 600; min-height: 42px;
+}
+.btn-salir:hover { background: var(--azul-oscuro); color: #fff; }
+@media (max-width: 991.98px) {
+    .site-nav .nav-link { padding: .8rem .9rem; font-size: 1.05rem; border-bottom-width: 0; border-left: 4px solid transparent; }
+    .site-nav .nav-link.active { border-left-color: var(--azul); }
+    .site-user { border-top: 1px solid var(--borde); padding-top: .75rem; margin-top: .5rem; }
+    .btn-salir { width: 100%; min-height: 46px; }
 }
 
+.dashboard-content { max-width: 1200px; margin-inline: auto; padding-top: 1.5rem !important; }
 
-/* Cuerpo interno centrado */
-.figma-body {
-    width: 100%;
-    padding: 20px 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Logotipo central */
-.figma-logo {
-    width: 320px;
-    max-width: 85%;
-    height: auto;
-    margin-bottom: 40px;
-    margin-top: 60px;
-}
-
-/* Formulario */
-.figma-form {
-    width: 100%;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Grupos de inputs integrados */
-.figma-input-group {
-    width: 100%;
-    margin-bottom: 30px;
-}
-
-    .figma-input-group input {
-        width: 100%;
-        border: none;
-        border-bottom: 2px solid #444;
-        background: transparent;
-        padding: 10px 4px;
-        font-size: 1.1rem;
-        color: #111;
-        outline: none;
-    }
-
-        .figma-input-group input:focus {
-            border-bottom-color: #143275;
-        }
-
-/* Botón de acceso idéntico */
-#btnLogin {
-    background-color: #143275 !important;
-    border: none !important;
-    border-radius: 40px !important;
-    padding: 14px 0;
-    font-weight: bold;
-    font-size: 1.05rem;
-    letter-spacing: 1.5px;
-    width: 75% !important;
-    margin-top: 20px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(20, 50, 117, 0.4);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-#btnLogin:hover {
-        background-color: #1b3f94 !important;
-   }
-
-/* ==========================================
-   DASHBOARD FIGMA ESTILOS (DEPORTES CALIFORNIA)
-   ========================================== */
-
-body.dashboard-body {
-    background-color: #a8e5eb; /* Fondo celeste claro exacto del diseño */
-    min-height: 100vh;
-    padding-bottom: 80px; /* Espacio para que el menú flotante inferior no tape contenido */
-    font-family: system-ui, -apple-system, sans-serif;
-}
-
-/* Header Teal con Bordes e Iconos */
-.figma-header {
-    background-color: #17a2b8;
-    color: white;
-    height: 60px;
-    border-bottom: 3px solid #000;
-}
-
-.header-logo-container {
-    width: 40px;
-    height: 40px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.header-logo {
-    width: 90%;
-    height: auto;
-}
-
-/* Banner Principal "HOME - DASHBOARD" */
+/* ---------- Títulos de página ---------- */
 .dash-banner {
-    background-color: #4b83c4; /* Azul del banner de Figma */
-    color: #000;
-    font-size: 1.8rem;
-    font-weight: 800;
-    text-align: center;
-    padding: 1.2rem;
-    border: 3px solid #000;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    letter-spacing: 1px;
+    background: transparent; color: var(--azul-oscuro); border: 0; border-bottom: 3px solid var(--azul-oscuro);
+    border-radius: 0; box-shadow: none; text-align: left; letter-spacing: 0;
+    font-size: 1.6rem; font-weight: 700; padding: 0 0 .5rem;
 }
 
-/* Tarjetas Métricas con Borde Negro Estilo Figma */
+/* ---------- Tarjetas de resumen ---------- */
 .metric-card {
-    background-color: #ffffff;
-    border: 3px solid #000;
-    border-radius: 14px;
-    padding: 1rem 1.2rem;
-    color: #000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    background: #fff; color: var(--texto); border: 1px solid var(--borde); border-left: 5px solid var(--azul);
+    border-radius: 8px; padding: 1rem 1.25rem; box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
 }
+.metric-card-lg { padding: 1.5rem; }
+.metric-title { font-weight: 600; font-size: 1rem; color: var(--texto-suave); }
+.metric-value { font-size: 2.2rem; font-weight: 700; line-height: 1; color: var(--azul-oscuro); }
+.metric-value-lg { font-size: 3.5rem; font-weight: 700; line-height: 1; color: var(--azul-oscuro); }
+.metric-icon { font-size: 1.8rem; color: #8a97a8; }
+.metric-icon-lg { font-size: 3.5rem; color: #8a97a8; }
+.metric-nota { color: var(--texto-suave); font-size: .92rem; margin-top: .35rem; min-height: 1.4rem; }
+.metric-alerta { border-left-color: var(--rojo); }
+.metric-alerta .metric-value, .metric-alerta .metric-icon { color: var(--rojo); }
+.metric-ok { border-left-color: var(--verde); }
+.movimientos-list .list-group-item { font-size: 1.05rem; border-color: #dde1e6 !important; }
 
-.metric-card-lg {
-    padding: 1.5rem;
-}
-
-.metric-title {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #111;
-}
-
-.metric-value {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.metric-value-lg {
-    font-size: 4rem;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.metric-icon {
-    font-size: 3rem;
-    color: #222;
-}
-
-.metric-icon-lg {
-    font-size: 4.5rem;
-    color: #222;
-}
-
-/* Lista de Movimientos */
-.movimientos-list .list-group-item {
-    font-size: 1.05rem;
-    border-color: #ccc !important;
-}
-
-/* Menú de Navegación Flotante Inferior */
-.bottom-nav {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    width: min(420px, calc(100% - 20px));
-    transform: translateX(-50%);
-    background-color: #ffffff;
-    border: 2px solid #000;
-    border-radius: 20px;
-    padding: 6px 20px;
-    display: flex;
-    justify-content: space-around;
-    gap: 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-}
-
-.bottom-nav .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        color: #555;
-        font-weight: 700;
-        font-size: 0.75rem;
-        transition: color 0.2s ease;
-        padding: 0 12px;
-    }
-
-.bottom-nav .nav-item i {
-            font-size: 1.4rem;
-        }
-
-.bottom-nav .nav-item.active,
-.bottom-nav .nav-item:hover {
-            color: #000;
-        }
-/* ==========================================
-   ESTILOS GESTIÓN DE INVENTARIO (FIGMA)
-   ========================================== */
-
-/* Píldoras de Búsqueda y Categoría */
-.custom-input-pill {
-    background-color: #ffffff;
-    border: 2px solid #000;
-    border-radius: 50px;
-    padding: 4px 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* Botones Verdes de Acción */
+/* ---------- Botones ---------- */
 .btn-action-green {
-    background-color: #3b8e61 !important; /* Verde exacto de Figma */
-    color: #ffffff !important;
-    border: 2px solid #000 !important;
-    border-radius: 50px !important;
-    padding: 10px 16px;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.1s ease, background-color 0.2s ease;
+    background: var(--verde) !important; color: #fff !important; border: 1px solid #1f4f2b !important;
+    border-radius: 6px !important; padding: .65rem 1rem; font-weight: 600; min-height: 46px;
+    display: flex; align-items: center; justify-content: center; text-decoration: none;
 }
+.btn-action-green:hover { background: var(--verde-hover) !important; }
 
-    .btn-action-green:hover {
-        background-color: #2e704c !important;
-        transform: translateY(-1px);
-    }
-
-/* Contenedor de Tabla con Borde */
-.table-card {
-    background-color: #ffffff;
-    border: 3px solid #000;
-    border-radius: 16px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+.btn-pill {
+    border: 1px solid rgba(0, 0, 0, .35); border-radius: 6px; font-weight: 600; padding: .6rem 1.4rem;
+    color: #fff; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
 }
-
-/* Estilos de la Tabla Custom */
-.custom-inv-table th {
-    border-bottom: 2px solid #000 !important;
-    font-weight: 800;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-    padding-bottom: 12px;
-}
-
-.custom-inv-table td {
-    border-bottom: 1px solid #d1d5db;
-    padding: 12px 8px;
-    font-size: 0.95rem;
-}
-
-.custom-inv-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Imágenes pequeñas dentro de la tabla */
-.table-img {
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-}
-
-/* ==========================================
-   COMPONENTES COMUNES (formularios, venta, perfil)
-   ========================================== */
-.dashboard-content { max-width: 1200px; margin-inline: auto; }
-.dash-banner { font-size: clamp(1.2rem, 3vw, 1.8rem); }
-.figma-header a { color: #fff; text-decoration: none; }
-.figma-header h1 { font-size: clamp(.75rem, 2.2vw, 1.05rem); min-width: 0; }
-
-.form-card { background: #fff; border: 3px solid #000; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,.1); }
-.field-label { font-weight: 700; font-size: .85rem; margin: 0 0 .25rem .6rem; }
-.pill-field { border: 2px solid #000 !important; border-radius: 50px !important; padding: .45rem 1rem !important; background: #fff; box-shadow: none !important; }
-textarea.pill-field { border-radius: 16px !important; }
-
-.btn-pill { border: 2px solid #000; border-radius: 50px; font-weight: 700; padding: .55rem 1.4rem; color: #fff; letter-spacing: .5px; box-shadow: 0 3px 6px rgba(0,0,0,.15); }
-.btn-pill:hover, .btn-pill:focus { color: #fff; filter: brightness(.9); }
+.btn-pill:hover, .btn-pill:focus { color: #fff; }
 .btn-pill:disabled { opacity: .6; }
-.btn-blue { background: #143275; }
-.btn-green { background: #3b8e61; }
-.btn-red { background: #c0392b; }
-.btn-orange, .btn-orange:hover, .btn-orange:focus { background: #f39c12; color: #000; }
+.btn-blue, .btn-blue:active { background: var(--azul); }
+.btn-green, .btn-green:active, .btn-orange { background: var(--verde); }
+.btn-red, .btn-red:active { background: var(--rojo); }
+.btn-blue:hover, .btn-blue:focus { background: var(--azul-hover); }
+.btn-green:hover, .btn-green:focus, .btn-orange:hover { background: var(--verde-hover); }
+.btn-red:hover, .btn-red:focus { background: var(--rojo-hover); }
+.btn-grande { font-size: 1.15rem; padding: .75rem 2.5rem; }
 
-.img-preview { width: 100%; max-width: 220px; aspect-ratio: 1; border: 2px dashed #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fff; overflow: hidden; cursor: pointer; text-align: center; font-weight: 700; margin: 0; }
+.btn-outline-dark, .btn-outline-danger { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; }
+
+/* ---------- Búsqueda, filtros y formularios ---------- */
+.custom-input-pill {
+    background: #fff; border: 1px solid var(--borde-campo); border-radius: 6px; padding: 2px 10px;
+    min-height: 46px; display: flex; align-items: center;
+}
+.custom-input-pill input, .custom-input-pill select { font-size: 1rem; width: 100%; }
+.custom-input-pill:focus-within { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(36, 90, 154, .25); }
+
+.form-card {
+    background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+.field-label { display: block; font-weight: 600; font-size: .95rem; margin: 0 0 .3rem; color: var(--texto); }
+.pill-field {
+    border: 1px solid var(--borde-campo) !important; border-radius: 6px !important; padding: .55rem .75rem !important;
+    background-color: #fff; font-size: 1rem; min-height: 46px; box-shadow: none !important;
+}
+textarea.pill-field { min-height: auto; }
+.pill-field:focus { border-color: var(--azul) !important; box-shadow: 0 0 0 3px rgba(36, 90, 154, .25) !important; }
+.pill-field:disabled, .pill-field[readonly] { background-color: #e9ecef; color: #3d4852; }
+
+.img-preview {
+    width: 100%; max-width: 280px; aspect-ratio: 1; border: 2px dashed var(--borde-campo); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; background: #fafbfc; color: var(--texto-suave);
+    overflow: hidden; cursor: pointer; text-align: center; font-weight: 600; margin: 0;
+}
 .img-preview img { width: 100%; height: 100%; object-fit: contain; }
-.detail-img { width: 100%; max-width: 260px; aspect-ratio: 1; object-fit: contain; }
+.detail-foto {
+    background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: .75rem;
+    display: flex; align-items: center; justify-content: center; min-height: 260px;
+}
+.detail-img { display: block; max-width: 100%; max-height: 440px; width: auto; height: auto; object-fit: contain; }
+.detail-img[src^="data:"] { width: 150px; }
+img[data-zoom] { cursor: zoom-in; }
+.img-ampliada { max-width: 100%; max-height: 75vh; object-fit: contain; }
 
-/* Registrar venta */
-.sale-panel { background: #fff; border: 3px solid #000; border-radius: 16px; padding: 1rem; height: 100%; }
+/* ---------- Tablas ---------- */
+.table-card { background: #fff; border: 1px solid var(--borde); border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+.custom-inv-table th {
+    background: #e8ecf1; color: var(--azul-oscuro); font-weight: 700; font-size: .92rem;
+    border-bottom: 2px solid var(--azul-oscuro) !important; padding: .75rem .5rem;
+}
+.custom-inv-table td { border-bottom: 1px solid #dde1e6; padding: .7rem .5rem; font-size: 1rem; }
+.custom-inv-table tbody tr:nth-child(even) { --bs-table-bg: #f7f8fa; }
+.custom-inv-table tbody tr:hover { --bs-table-bg: #e6eef8; }
+.custom-inv-table tbody tr:last-child td { border-bottom: none; }
+.table-img { width: 76px; height: 76px; object-fit: contain; background: #fff; border: 1px solid #e1e5ea; border-radius: 6px; padding: 2px; }
+
+/* ---------- Registrar venta ---------- */
+.sale-panel { background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: 1rem; height: 100%; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 .scroll-list { max-height: 55vh; overflow-y: auto; padding-right: 4px; }
-.prod-row, .cart-row { display: flex; align-items: center; gap: .7rem; background: #d9d9d9; border: 2px solid #000; border-radius: 10px; padding: .4rem .6rem; margin-bottom: .5rem; }
+.prod-row, .cart-row {
+    display: flex; align-items: center; gap: .75rem; background: #fff; border: 1px solid var(--borde);
+    border-radius: 6px; padding: .5rem .65rem; margin-bottom: .5rem;
+}
 .prod-row { cursor: pointer; }
-.prod-row:hover { background: #c3e4e8; }
-.prod-row.agotado { opacity: .5; cursor: not-allowed; }
-.prod-row img, .cart-row img { width: 48px; height: 48px; object-fit: contain; background: #fff; border-radius: 8px; flex-shrink: 0; }
-.qty-box { display: flex; align-items: center; gap: .35rem; font-weight: 700; }
-.qty-box button { width: 26px; height: 26px; border: 2px solid #000; border-radius: 6px; background: #fff; font-weight: 800; line-height: 1; padding: 0; }
+.prod-row:hover { background: #eaf1f9; border-color: var(--azul); }
+.prod-row.agotado { opacity: .55; cursor: not-allowed; background: #f0f0f0; }
+.prod-row img, .cart-row img { width: 52px; height: 52px; object-fit: contain; background: #fff; border-radius: 6px; flex-shrink: 0; }
+.qty-box { display: flex; align-items: center; gap: .45rem; font-weight: 700; }
+.qty-box button {
+    width: 36px; height: 36px; border: 1px solid var(--borde-campo); border-radius: 6px; background: #fff;
+    font-weight: 700; font-size: 1.15rem; line-height: 1; padding: 0;
+}
+.qty-box button:hover { background: #e6eef8; }
 
-/* Confirmar venta */
-.total-box { background: #f39c12; border: 3px solid #000; border-radius: 14px; padding: 1rem; text-align: center; font-weight: 800; }
-.total-box .monto { font-size: 2rem; line-height: 1.1; }
-.pay-btn { width: 100%; border: 3px solid #000; border-radius: 14px; padding: .9rem; color: #fff; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: .2rem; }
-.pay-btn i { font-size: 1.8rem; }
-.pay-btn.transferencia { background: #1f8fe0; }
-.pay-btn.efectivo { background: #2fb344; }
-.pay-btn.sel { outline: 5px solid #000; outline-offset: 2px; }
+/* ---------- Confirmar venta ---------- */
+.total-box { background: var(--azul-oscuro); color: #fff; border-radius: 8px; padding: 1rem; text-align: center; font-weight: 600; }
+.total-box .monto { font-size: 2.2rem; line-height: 1.1; font-weight: 700; }
+.pay-btn {
+    width: 100%; border: 2px solid transparent; border-radius: 8px; padding: .9rem; color: #fff; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; gap: .2rem; font-size: 1rem;
+}
+.pay-btn i { font-size: 1.7rem; }
+.pay-btn.transferencia { background: var(--azul); }
+.pay-btn.efectivo { background: var(--verde); }
+.pay-btn:hover { filter: brightness(.92); }
+.pay-btn.sel { border-color: #000; box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--azul-oscuro); }
+.pay-btn.sel::after { content: "\2714  Seleccionado"; font-size: .85rem; font-weight: 600; }
 
-/* Perfil */
-.perfil-fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 2px solid #444; padding: .6rem .2rem; }
+/* ---------- Perfil, avisos y ventanas ---------- */
+.perfil-fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--borde); padding: .8rem .2rem; }
+.toast-zone { position: fixed; top: 90px; right: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: calc(100% - 24px); }
+.toast-zone .alert { border-width: 1px !important; border-color: rgba(0, 0, 0, .25) !important; font-size: 1rem; }
+.modal-content { border: 1px solid var(--borde) !important; border-radius: 8px !important; }
 
-/* Avisos flotantes */
-.toast-zone { position: fixed; top: 70px; right: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: calc(100% - 24px); }
+/* ---------- Inicio y acceso ---------- */
+body.landing-body, body.login-body { min-height: 100vh; background-color: var(--fondo); }
+.login-header { background: #fff; color: var(--azul-oscuro); text-align: center; padding: 1rem; font-size: 1.25rem; font-weight: 700; border-bottom: 3px solid var(--azul-oscuro); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+.login-card, .landing-main {
+    max-width: 460px; margin: 2.5rem auto; background: #fff; border: 1px solid var(--borde); border-radius: 8px;
+    padding: 2rem; box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+}
+.landing-main { max-width: 580px; text-align: center; padding: 2.5rem 2rem; }
+.landing-main h1 { font-size: 1.7rem; font-weight: 700; color: var(--azul-oscuro); margin-bottom: .75rem; }
+.landing-main p { color: var(--texto-suave); font-size: 1.05rem; margin-bottom: 1.75rem; }
+.login-logo { display: block; max-width: 240px; width: 70%; margin: 0 auto 1.5rem; }
+.login-card h1 { font-size: 1.4rem; font-weight: 700; color: var(--azul-oscuro); text-align: center; margin-bottom: 1.25rem; }
+.login-card .btn-pill { width: 100%; font-size: 1.1rem; }
 
-/* Bienvenida */
-body.landing-body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem 1.2rem; font-family: system-ui, -apple-system, sans-serif; background: radial-gradient(circle at 15% 20%, #fff8e4, #fdf1d6 60%, #f6e3bd); }
-.landing-title { font-family: Georgia, "Times New Roman", serif; font-weight: 800; font-size: clamp(1.5rem, 4.5vw, 2.4rem); letter-spacing: .5px; }
-.landing-logo { width: min(340px, 80%); margin: 1.2rem 0; }
-.landing-text { max-width: 480px; font-size: .95rem; color: #333; }
-.btn-landing { background: #000; color: #fff; border-radius: 50px; padding: .8rem 2.6rem; font-weight: 700; letter-spacing: 1px; text-decoration: none; margin-top: 1.5rem; }
-.btn-landing:hover { background: #222; color: #fff; }
+@media (max-width: 700px) {
+    html { font-size: 16px; }
+    .site-logo { height: 40px; }
+    .dash-banner { font-size: 1.35rem; }
+    .login-card, .landing-main { margin: 1.25rem 1rem; padding: 1.5rem 1.25rem; }
+}
+
+/* Las listas desplegables conservan espacio para la flecha */
+select.pill-field { padding-right: 2.25rem !important; }
+
+
+/* ---------- Adaptación a celular y tablet ---------- */
+/* Carrito: la fila pasa a dos líneas cuando no cabe */
+.cart-row { flex-wrap: wrap; }
+.cart-info { flex: 1 1 140px; min-width: 0; }
+.cart-fin { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
+.prod-row > div:nth-child(2) { flex: 1; min-width: 0; }
+.custom-inv-table .btn { min-height: 40px; }
+
+/* Tablas: en celular cada fila se muestra como una tarjeta con etiquetas */
+@media (max-width: 767.98px) {
+    .tabla-apilada, .tabla-apilada tbody, .tabla-apilada tr, .tabla-apilada td { display: block; width: 100%; }
+    .tabla-apilada thead { display: none; }
+    .tabla-apilada tr { border: 1px solid var(--borde); border-radius: 8px; margin-bottom: .75rem; padding: .5rem .75rem; }
+    .tabla-apilada td {
+        display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+        text-align: right !important; border: 0 !important; padding: .4rem 0 !important;
+    }
+    .tabla-apilada td::before { content: attr(data-label); font-weight: 700; color: var(--texto-suave); text-align: left; flex-shrink: 0; }
+    .tabla-apilada td[data-label=""] { justify-content: center; }
+    .tabla-apilada .table-img { width: 120px; height: 120px; }
+    .tabla-apilada td[data-label=""]::before, .tabla-apilada td[colspan]::before { content: none; }
+    .tabla-apilada td[colspan] { display: block; text-align: center !important; }
+}
+
+/* ---------- Ficha del producto ---------- */
+.producto-nombre { font-size: 1.7rem; font-weight: 700; color: var(--azul-oscuro); margin-bottom: 1rem; }
+.producto-precio, .producto-stock { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+.producto-precio { color: var(--azul-oscuro); }
+.producto-datos dt { font-weight: 600; color: var(--texto-suave); }
+.producto-datos dd { font-weight: 600; margin-bottom: .5rem; }

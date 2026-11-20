@@ -15,6 +15,8 @@ function filaMovimiento(m) {
         porId("totalProductos").textContent = d.totalProductos;
         porId("stockBajo").textContent = d.stockBajo;
         porId("productosVendidosHoy").textContent = d.vendidosHoy;
+        porId("ventasHoyMonto").textContent = moneda(d.ventasHoyMonto);
+        porId("ventasHoyCantidad").textContent = d.ventasHoyCantidad === 1 ? "1 venta registrada" : `${d.ventasHoyCantidad} ventas registradas`;
         porId("listaMovimientos").innerHTML = d.ultimosMovimientos.length
             ? d.ultimosMovimientos.map(filaMovimiento).join("")
             : '<div class="text-muted py-2">Todavía no hay movimientos.</div>';
