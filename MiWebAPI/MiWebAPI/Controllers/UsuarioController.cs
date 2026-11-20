@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiWebAPI.Data;
 using MiWebAPI.Models;
@@ -7,6 +8,7 @@ namespace MiWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = Roles.Administrador)]
     public class UsuarioController : ControllerBase
     {
         private readonly UsuarioData _usuarioData;

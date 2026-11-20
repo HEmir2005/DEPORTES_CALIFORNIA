@@ -15,6 +15,8 @@ const ICONO_MOV = {
 // Llama a la API. Lanza Error si el servidor falla o si la respuesta trae isSuccess = false.
 async function api(url, opciones = {}) {
     const respuesta = await fetch(url, opciones);
+    if (respuesta.status === 401) { sesionExpirada(); throw new Error("Tu sesión terminó. Inicia sesión de nuevo."); }
+    if (respuesta.status === 403) throw new Error("No tienes permiso para realizar esta acción.");
     let datos = null;
     try { datos = await respuesta.json(); } catch { /* respuesta sin JSON */ }
     if (!respuesta.ok) throw new Error(datos?.respuesta || `Error del servidor (${respuesta.status}).`);
@@ -87,4 +89,136 @@ function aviso(texto, tipo = "success") {
     el.textContent = texto;
     zona.appendChild(el);
     setTimeout(() => el.remove(), 4000);
+}
+
+
+// ---------- Paginación ----------
+function paginar(lista, pagina, porPagina) {
+    const total = lista.length;
+    const paginas = Math.max(1, Math.ceil(total / porPagina));
+    const actual = Math.min(Math.max(1, pagina), paginas);
+    const inicio = (actual - 1) * porPagina;
+    const fin = Math.min(total, inicio + porPagina);
+    return { items: lista.slice(inicio, fin), actual, paginas, total, inicio, fin, porPagina };
+}
+
+// Dibuja "Mostrando X-Y de Z", el selector "Por página" (opcional) y los botones de página.
+function pintarPaginacion(idContenedor, info, alCambiarPagina, opciones = {}) {
+    const cont = porId(idContenedor);
+    if (!cont) return;
+    if (info.total === 0) { cont.innerHTML = ""; return; }
+
+    const botones = [];
+    const agregar = (n, texto, estado, etiqueta) => botones.push(
+        `<li class="page-item ${estado}"><a class="page-link" href="#" data-pagina="${n}" aria-label="${etiqueta}">${texto}</a></li>`);
+    agregar(info.actual - 1, "Anterior", info.actual === 1 ? "disabled" : "", "Página anterior");
+    let previo = 0;
+    for (let n = 1; n <= info.paginas; n++) {
+        if (n === 1 || n === info.paginas || Math.abs(n - info.actual) <= 1) {
+            if (n - previo > 1) botones.push('<li class="page-item disabled"><span class="page-link">…</span></li>');
+            agregar(n, n, n === info.actual ? "active" : "", `Página ${n}`);
+            previo = n;
+        }
+    }
+    agregar(info.actual + 1, "Siguiente", info.actual === info.paginas ? "disabled" : "", "Página siguiente");
+
+    const selector = opciones.tamanos
+        ? `<label class="d-flex align-items-center gap-2 mb-0">Por página
+               <select class="form-select form-select-sm w-auto" data-por-pagina>
+                   ${opciones.tamanos.map((t) => `<option value="${t}" ${t === info.porPagina ? "selected" : ""}>${t}</option>`).join("")}
+               </select></label>`
+        : "";
+
+    cont.innerHTML = `
+        <div class="paginacion d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="text-muted">Mostrando ${info.inicio + 1}–${info.fin} de ${info.total}</span>${selector}
+            </div>
+            ${info.paginas > 1 ? `<nav aria-label="Páginas"><ul class="pagination mb-0">${botones.join("")}</ul></nav>` : ""}
+        </div>`;
+
+    cont.onclick = (e) => {
+        const enlace = e.target.closest("[data-pagina]");
+        if (!enlace) return;
+        e.preventDefault();
+        if (enlace.closest(".disabled, .active")) return;
+        alCambiarPagina(Number(enlace.dataset.pagina));
+    };
+    cont.onchange = (e) => {
+        const s = e.target.closest("[data-por-pagina]");
+        if (s && opciones.alCambiarTamano) opciones.alCambiarTamano(Number(s.value));
+    };
+}
+
+
+// ---------- Validaciones visuales ----------
+// Marca un campo como correcto o con error y muestra el mensaje debajo (elemento .invalid-feedback).
+// Devuelve true si el campo es válido.
+function marcarCampo(input, mensaje) {
+    input.classList.toggle("is-invalid", !!mensaje);
+    input.classList.toggle("is-valid", !mensaje && input.value !== "" && !input.disabled);
+    const feedback = input.parentElement.querySelector(".invalid-feedback");
+    if (feedback && mensaje) feedback.textContent = mensaje;
+    return !mensaje;
+}
+
+// ---------- Ventana de confirmación ----------
+// Sustituye al confirm() del navegador. Devuelve una promesa: true si la persona acepta.
+function confirmarAccion({ titulo, mensaje, boton = "Aceptar", tipo = "blue" }) {
+    return new Promise((resolver) => {
+        porId("modalConfirmar")?.remove();
+        document.body.insertAdjacentHTML("beforeend", `
+            <div class="modal fade" id="modalConfirmar" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title fw-bold">${esc(titulo)}</h5></div>
+                        <div class="modal-body">${esc(mensaje)}</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-dark" data-respuesta="no">Cancelar</button>
+                            <button type="button" class="btn btn-pill btn-${tipo}" data-respuesta="si">${esc(boton)}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`);
+        const elemento = porId("modalConfirmar");
+        const modal = new bootstrap.Modal(elemento);
+        let respuesta = false;
+        elemento.addEventListener("click", (e) => {
+            const b = e.target.closest("[data-respuesta]");
+            if (b) { respuesta = b.dataset.respuesta === "si"; modal.hide(); }
+        });
+        elemento.addEventListener("hidden.bs.modal", () => { elemento.remove(); resolver(respuesta); });
+        modal.show();
+    });
+}
+
+
+// ---------- Sesión y permisos ----------
+function sesionExpirada() {
+    sessionStorage.removeItem(SESSION_KEY);
+    window.location.replace("login.html");
+}
+
+// Manda a otra pantalla y allí muestra por qué.
+function denegarAcceso(destino = "inventario.html") {
+    sessionStorage.setItem("aviso_pendiente", "No tienes permiso para entrar a esa pantalla.");
+    window.location.replace(destino);
+}
+
+// Sustituye el contenido de la página por un mensaje cuando el registro pedido no existe.
+function mostrarNoEncontrado(mensaje, destino = "inventario.html", textoBoton = "Volver al inventario") {
+    const contenedor = document.querySelector("main") || document.body;
+    contenedor.innerHTML = `
+        <div class="form-card text-center py-5">
+            <i class="bi bi-search" style="font-size:3rem" aria-hidden="true"></i>
+            <h2 class="h4 fw-bold mt-3">No encontrado</h2>
+            <p class="mb-4">${esc(mensaje)}</p>
+            <a href="${esc(destino)}" class="btn btn-pill btn-blue">${esc(textoBoton)}</a>
+        </div>`;
+}
+
+const avisoPendiente = sessionStorage.getItem("aviso_pendiente");
+if (avisoPendiente) {
+    sessionStorage.removeItem("aviso_pendiente");
+    aviso(avisoPendiente, "warning");
 }

@@ -4,6 +4,8 @@ const buscar = porId("inputBuscar");
 const categoria = porId("selectCategoria");
 let productos = [];
 let carrito = leerCarrito();
+let paginaLista = 1;
+const POR_PAGINA_VENTA = 5;
 
 function pintarLista() {
     const texto = buscar.value.trim().toLowerCase();
@@ -12,7 +14,10 @@ function pintarLista() {
         (!cat || p.categoria === cat) &&
         (!texto || [p.nombre, p.sku, p.color].some((x) => (x ?? "").toLowerCase().includes(texto))));
 
-    lista.innerHTML = visibles.length ? visibles.map((p) => `
+    const info = paginar(visibles, paginaLista, POR_PAGINA_VENTA);
+    paginaLista = info.actual;
+
+    lista.innerHTML = info.total ? info.items.map((p) => `
         <div class="prod-row ${p.stock <= 0 ? "agotado" : ""}" data-add="${esc(p.sku)}">
             ${imgProducto(p)}
             <div class="flex-grow-1 lh-sm">
@@ -24,6 +29,7 @@ function pintarLista() {
                 <small class="${p.stock <= STOCK_BAJO ? "text-danger fw-bold" : ""}">${p.stock > 0 ? `Stock: ${p.stock}` : "Agotado"}</small>
             </div>
         </div>`).join("") : '<div class="text-muted p-2">No se encontraron productos.</div>';
+    pintarPaginacion("paginacionVenta", info, (n) => { paginaLista = n; pintarLista(); });
 }
 
 function pintarCarrito() {
@@ -37,12 +43,13 @@ function pintarCarrito() {
             <div class="cart-info lh-sm">
                 <div class="fw-bold">${esc(p.nombre)}</div>
                 <small>Talla: ${esc(p.talla) || "-"} | ${moneda(p.precio)}</small>
+                ${item.cantidad >= p.stock ? `<div class="text-danger small fw-semibold">Máximo disponible: ${p.stock}</div>` : ""}
             </div>
             <div class="cart-fin">
                 <div class="qty-box">
                     <button type="button" data-act="menos" data-id="${esc(p.sku)}" aria-label="Quitar uno">-</button>
                     <span>${item.cantidad}</span>
-                    <button type="button" data-act="mas" data-id="${esc(p.sku)}" aria-label="Agregar uno">+</button>
+                    <button type="button" data-act="mas" data-id="${esc(p.sku)}" aria-label="Agregar uno" ${item.cantidad >= p.stock ? "disabled" : ""}>+</button>
                 </div>
                 <div class="fw-bold text-end" style="min-width:80px">${moneda(subtotal)}</div>
                 <button type="button" class="btn p-0 border-0 text-danger" data-act="quitar" data-id="${esc(p.sku)}" aria-label="Eliminar del carrito"><i class="bi bi-trash fs-5"></i></button>
@@ -91,13 +98,13 @@ itemsCarrito.addEventListener("click", (e) => {
     pintarCarrito();
 });
 
-buscar.addEventListener("input", pintarLista);
-categoria.addEventListener("change", pintarLista);
+buscar.addEventListener("input", () => { paginaLista = 1; pintarLista(); });
+categoria.addEventListener("change", () => { paginaLista = 1; pintarLista(); });
 porId("btnFinalizar").addEventListener("click", () => (location.href = "confirmar-venta.html"));
 
 (async function () {
     try {
-        const [categorias, lista] = await Promise.all([api("/api/Producto/categorias"), api("/api/Producto")]);
+        const [categorias, lista] = await Promise.all([api(API_URL + "/Producto/categorias"), api(API_URL + "/Producto")]);
         categoria.insertAdjacentHTML("beforeend",
             categorias.map((c) => `<option value="${esc(c.nombre)}">${esc(c.nombre)}</option>`).join(""));
         productos = lista;

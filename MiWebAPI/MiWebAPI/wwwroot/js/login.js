@@ -13,7 +13,7 @@ formLogin.addEventListener("submit", async (evento) => {
     btnLogin.textContent = "Ingresando...";
 
     try {
-        const respuesta = await fetch("/api/Auth/login", {
+        const respuesta = await fetch(API_URL + "/Auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

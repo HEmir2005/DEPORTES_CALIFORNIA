@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
 using MiWebAPI.Data;
 
@@ -14,6 +15,22 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
     options.MultipartBodyLengthLimit = 20 * 1024 * 1024; // 20 MB límite seguro
     options.MemoryBufferThreshold = int.MaxValue;
 });
+
+// Sesión con cookie (segura, sin JavaScript): el navegador la envía sola en cada petición.
+// Si falta la sesión la API responde 401, y si el rol no alcanza, 403.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opciones =>
+    {
+        opciones.Cookie.Name = "deportes_california_sesion";
+        opciones.Cookie.HttpOnly = true;
+        opciones.Cookie.SameSite = SameSiteMode.Strict;
+        opciones.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        opciones.ExpireTimeSpan = TimeSpan.FromHours(8);
+        opciones.SlidingExpiration = true;
+        opciones.Events.OnRedirectToLogin = contexto => { contexto.Response.StatusCode = StatusCodes.Status401Unauthorized; return Task.CompletedTask; };
+        opciones.Events.OnRedirectToAccessDenied = contexto => { contexto.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -56,6 +73,7 @@ if (app.Environment.IsDevelopment())
 app.UseDefaultFiles(new DefaultFilesOptions { DefaultFileNames = new List<string> { "bienvenida.html" } });
 app.UseStaticFiles();
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -38,24 +38,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* ---------- Encabezado y menú superior (navbar de Bootstrap) ---------- */
 .site-header { background: #fff; border-bottom: 3px solid var(--azul-oscuro); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 .site-header .navbar { padding: .5rem 0; }
-.site-header .container-xl { max-width: 1200px; }
+.site-header .container-xl { max-width: 1320px; }
 .site-header .navbar-toggler { border: 2px solid var(--azul-oscuro); padding: .4rem .65rem; min-height: 46px; }
 .site-brand { display: flex; align-items: center; gap: .75rem; color: var(--azul-oscuro); font-weight: 700; font-size: 1.05rem; margin-right: 1.5rem; }
 .site-brand:hover, .site-brand:focus { color: var(--azul-oscuro); }
 .site-logo { height: 48px; width: auto; }
 .site-nav { gap: .25rem; }
 .site-nav .nav-link {
-    color: var(--azul-oscuro); font-weight: 600; padding: .55rem .9rem; border-radius: 6px; border-bottom: 3px solid transparent;
+    color: var(--azul-oscuro); font-weight: 600; padding: .5rem .75rem; border-radius: 6px; border-bottom: 3px solid transparent; white-space: nowrap;
 }
 .site-nav .nav-link:hover { background: #e8eef6; color: var(--azul-oscuro); }
 .site-nav .nav-link.active { background: #dbe6f4; color: var(--azul-oscuro); border-bottom-color: var(--azul); }
-.site-user { font-weight: 600; color: var(--texto); }
+.site-user { font-weight: 600; color: var(--texto); white-space: nowrap; }
 .btn-salir {
     background: #fff; color: var(--azul-oscuro); border: 1px solid var(--azul-oscuro);
-    border-radius: 6px; padding: .4rem .9rem; font-weight: 600; min-height: 42px;
+    border-radius: 6px; padding: .4rem .9rem; font-weight: 600; min-height: 42px; white-space: nowrap;
 }
 .btn-salir:hover { background: var(--azul-oscuro); color: #fff; }
-@media (max-width: 991.98px) {
+@media (max-width: 1199.98px) {
     .site-nav .nav-link { padding: .8rem .9rem; font-size: 1.05rem; border-bottom-width: 0; border-left: 4px solid transparent; }
     .site-nav .nav-link.active { border-left-color: var(--azul); }
     .site-user { border-top: 1px solid var(--borde); padding-top: .75rem; margin-top: .5rem; }
@@ -253,3 +253,42 @@ select.pill-field { padding-right: 2.25rem !important; }
 .producto-precio { color: var(--azul-oscuro); }
 .producto-datos dt { font-weight: 600; color: var(--texto-suave); }
 .producto-datos dd { font-weight: 600; margin-bottom: .5rem; }
+
+/* ---------- Paginación ---------- */
+.paginacion { padding-top: .75rem; }
+.pagination { flex-wrap: wrap; gap: .25rem; }
+.pagination .page-item:not(:first-child) .page-link { margin-left: 0; }
+.pagination .page-link {
+    color: var(--azul-oscuro); font-weight: 600; min-width: 44px; min-height: 44px; border-color: var(--borde);
+    display: flex; align-items: center; justify-content: center; border-radius: 6px !important;
+}
+.pagination .page-link:hover { background: #e8eef6; }
+.pagination .page-item.active .page-link { background: var(--azul); border-color: var(--azul); color: #fff; }
+.pagination .page-item.disabled .page-link { color: #8a97a8; background: #f3f4f6; }
+.paginacion .form-select-sm { min-height: 40px; }
+
+/* ---------- Confirmación de producto guardado ---------- */
+.exito-ficha {
+    display: flex; align-items: center; gap: 1rem; text-align: left;
+    background: #f7f8fa; border: 1px solid var(--borde); border-radius: 8px; padding: .75rem;
+}
+
+/* ---------- Validaciones, vistas y botones pequeños ---------- */
+.pill-field.is-invalid, .form-control.is-invalid { border-color: var(--rojo) !important; background-image: none; }
+.pill-field.is-valid, .form-control.is-valid { border-color: var(--verde) !important; background-image: none; }
+.invalid-feedback { font-size: .95rem; font-weight: 600; }
+.btn-chico { min-height: 40px !important; padding: .3rem .85rem !important; font-size: .95rem; }
+.btn-vista { border: 1px solid var(--azul-oscuro); color: var(--azul-oscuro); font-weight: 600; background: #fff; min-height: 44px; display: inline-flex; align-items: center; }
+.btn-check:checked + .btn-vista { background: var(--azul-oscuro); color: #fff; }
+.btn-group > .btn-vista:first-of-type { border-radius: 6px 0 0 6px; }
+.btn-group > .btn-vista:last-of-type { border-radius: 0 6px 6px 0; }
+.pago-error { outline: 3px solid var(--rojo); outline-offset: 4px; border-radius: 8px; }
+.fila-problema > td { background: #fdecea !important; }
+.custom-inv-table tbody tr.fila-agotado { --bs-table-bg: #fdecea; }
+
+/* ---------- Ajustes visuales ---------- */
+/* La etiqueta del rol queda en la misma línea que el nombre */
+.site-user .badge { font-size: .72rem; vertical-align: middle; }
+/* Los textos largos sin espacios (códigos, nombres) se parten en vez de salirse de su caja */
+.custom-inv-table td, .prod-row, .cart-info, .producto-nombre, .exito-ficha, .metric-title, .modal-body, .alert { overflow-wrap: anywhere; }
+img { max-width: 100%; }

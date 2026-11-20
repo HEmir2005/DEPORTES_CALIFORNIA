@@ -19,3 +19,4 @@ appsettings.Development.json
 Thumbs.db
 *.log
 
+Claude outputs/

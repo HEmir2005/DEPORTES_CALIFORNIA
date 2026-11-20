@@ -11,24 +11,45 @@
 </head>
 <body class="dashboard-body" data-nav="inventario">
     <main class="container-fluid p-3 p-md-4 dashboard-content">
-        <div class="dash-banner mb-4">Gestión de inventario</div>
+        <div class="dash-banner mb-3">Gestión de inventario</div>
+
+        <div id="alertaStock" class="alert alert-warning d-flex d-none align-items-center justify-content-between flex-wrap gap-2" role="alert">
+            <span id="alertaStockTexto"></span>
+            <button type="button" class="btn btn-pill btn-green btn-chico" id="btnVerFaltantes">Ver productos</button>
+        </div>
+
+        <div class="btn-group mb-3" id="grupoVista" role="group" aria-label="Qué productos ver">
+            <input type="radio" class="btn-check" name="vista" id="vistaActivos" autocomplete="off" checked>
+            <label class="btn btn-vista" for="vistaActivos">Productos activos</label>
+            <input type="radio" class="btn-check" name="vista" id="vistaBaja" autocomplete="off">
+            <label class="btn btn-vista" for="vistaBaja">Dados de baja</label>
+        </div>
 
         <div class="row g-3 mb-4 align-items-center">
-            <div class="col-12 col-sm-6 col-md-4">
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="custom-input-pill d-flex align-items-center">
-                    <input type="text" id="inputBuscar" placeholder="Buscar..." class="form-control border-0 bg-transparent shadow-none">
-                    <i class="bi bi-search ms-2 text-muted fs-5"></i>
+                    <input type="text" id="inputBuscar" placeholder="Buscar..." aria-label="Buscar producto" class="form-control border-0 bg-transparent shadow-none">
+                    <i class="bi bi-search ms-2 text-muted fs-5" aria-hidden="true"></i>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4">
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="custom-input-pill">
-                    <select id="selectCategoria" class="form-select border-0 bg-transparent shadow-none">
-                        <option value="" selected>Categoría</option>
+                    <select id="selectCategoria" aria-label="Categoría" class="form-select border-0 bg-transparent shadow-none">
+                        <option value="" selected>Todas las categorías</option>
                     </select>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4">
-                <a href="producto-form.html" class="btn btn-action-green w-100 fw-bold">Añadir nuevo producto</a>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="custom-input-pill">
+                    <select id="selectExistencias" aria-label="Existencias" class="form-select border-0 bg-transparent shadow-none">
+                        <option value="" selected>Todas las existencias</option>
+                        <option value="bajo">Stock bajo (5 o menos)</option>
+                        <option value="agotado">Agotados</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a href="producto-form.html" id="btnAnadir" class="btn btn-action-green w-100 fw-bold">Añadir nuevo producto</a>
             </div>
         </div>
 
@@ -38,13 +59,37 @@
                     <thead>
                         <tr>
                             <th>Imagen</th><th>Código (SKU)</th><th>Producto</th><th>Categoría</th>
-                            <th>Talla</th><th>Color</th><th>Precio</th><th>Stock</th><th></th>
+                            <th>Talla</th><th>Color</th><th>Precio</th><th>Stock</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tablaProductos">
                         <tr><td colspan="9" class="text-muted py-4">Cargando...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div id="paginacionInventario"></div>
+        </div>
+
+        <div class="modal fade" id="modalResurtir" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Resurtir producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-1 fw-bold" id="resurtirNombre"></p>
+                        <p class="text-muted" id="resurtirStock"></p>
+                        <label class="field-label" for="cantidadResurtir">Unidades que llegaron</label>
+                        <input type="number" id="cantidadResurtir" class="form-control pill-field" min="1" step="1" inputmode="numeric">
+                        <div class="invalid-feedback"></div>
+                        <div class="form-text fw-semibold" id="resurtirResultado"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="btnConfirmarResurtir" class="btn btn-pill btn-green">Agregar al stock</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

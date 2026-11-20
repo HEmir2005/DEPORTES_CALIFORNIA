@@ -12,6 +12,11 @@ function guardarUsuario(usuario) {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
 }
 
+// Solo organiza lo que se muestra: el servidor es quien realmente permite o niega cada acción.
+function esAdmin() {
+    return obtenerUsuario()?.rol === "Administrador";
+}
+
 function protegerPagina() {
     if (!obtenerUsuario()) window.location.replace("login.html");
 }
@@ -25,5 +30,8 @@ function mostrarUsuario(elementId) {
 function cerrarSesion() {
     sessionStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(CARRITO_KEY);
-    window.location.replace("login.html");
+    // También se cierra la sesión del servidor (la cookie).
+    fetch(`${API_URL}/Auth/logout`, { method: "POST" })
+        .catch(() => { /* aunque falle la red, se sale de la pantalla */ })
+        .finally(() => window.location.replace("login.html"));
 }
