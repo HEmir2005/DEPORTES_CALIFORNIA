@@ -1,0 +1,21 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+
+# Archivos comprimidos y copias de seguridad
+*.rar
+*.zip
+
+# Configuración y secretos de cada computadora (cadena de conexión de Azure, contraseñas)
+appsettings.Local.json
+appsettings.Development.json
+
+# Sistema y herramientas
+.DS_Store
+Thumbs.db
+*.log
+
