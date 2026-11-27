@@ -143,7 +143,8 @@ textarea.pill-field { min-height: auto; }
     background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: .75rem;
     display: flex; align-items: center; justify-content: center; min-height: 260px;
 }
-.detail-img { display: block; max-width: 100%; max-height: 440px; width: auto; height: auto; object-fit: contain; }
+/* Las fotos se muestran en un cuadro cuadrado: las nuevas ya vienen cuadradas y las antiguas se centran sin deformarse. */
+.detail-img { display: block; width: 100%; max-width: 440px; aspect-ratio: 1; height: auto; object-fit: contain; background: #fff; }
 .detail-img[src^="data:"] { width: 150px; }
 img[data-zoom] { cursor: zoom-in; }
 .img-ampliada { max-width: 100%; max-height: 75vh; object-fit: contain; }
@@ -196,6 +197,8 @@ img[data-zoom] { cursor: zoom-in; }
 .perfil-fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--borde); padding: .8rem .2rem; }
 .toast-zone { position: fixed; top: 90px; right: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; max-width: calc(100% - 24px); }
 .toast-zone .alert { border-width: 1px !important; border-color: rgba(0, 0, 0, .25) !important; font-size: 1rem; }
+.indicador-carga { position: fixed; left: 12px; bottom: 12px; z-index: 2100; display: flex; align-items: center; gap: .5rem; background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: .4rem .8rem; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); font-size: .95rem; }
+.indicador-carga[hidden] { display: none; }
 .modal-content { border: 1px solid var(--borde) !important; border-radius: 8px !important; }
 
 /* ---------- Inicio y acceso ---------- */

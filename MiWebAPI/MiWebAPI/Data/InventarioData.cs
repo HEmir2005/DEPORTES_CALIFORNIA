@@ -14,9 +14,12 @@ namespace MiWebAPI.Data
         private const string ZonaHoraria = "Central Standard Time (Mexico)"; // para calcular "ventas de hoy"
         private readonly string conexion;
 
-        public InventarioData(IConfiguration configuration)
+        private readonly ILogger<InventarioData> _log;
+
+        public InventarioData(IConfiguration configuration, ILogger<InventarioData> log)
         {
             conexion = configuration.GetConnectionString("CadenaSQL")!;
+            _log = log;
         }
 
         private const string BaseProducto = @"
@@ -45,6 +48,14 @@ namespace MiWebAPI.Data
 
         private static RespuestaOperacion Error(string mensaje, int numero = -1) =>
             new() { NumeroError = numero, Respuesta = mensaje };
+
+        // Error inesperado de la base de datos: el detalle se guarda en el registro del servidor
+        // y al usuario solo se le muestra un mensaje general (no se revelan tablas ni datos internos).
+        private RespuestaOperacion ErrorInterno(Exception ex)
+        {
+            _log.LogError(ex, "Error en la base de datos");
+            return Error("No se pudo completar la operación. Inténtalo de nuevo; si continúa, avisa al administrador.");
+        }
 
         private static object ValorODbNull(string? valor) =>
             string.IsNullOrWhiteSpace(valor) ? DBNull.Value : valor.Trim();
@@ -206,7 +217,7 @@ namespace MiWebAPI.Data
             }
             catch (Exception ex)
             {
-                return Error(ex.Message);
+                return ErrorInterno(ex);
             }
         }
 
@@ -248,7 +259,7 @@ namespace MiWebAPI.Data
             }
             catch (Exception ex)
             {
-                return Error(ex.Message);
+                return ErrorInterno(ex);
             }
         }
 
@@ -268,7 +279,7 @@ namespace MiWebAPI.Data
             }
             catch (Exception ex)
             {
-                return Error(ex.Message);
+                return ErrorInterno(ex);
             }
         }
 
@@ -310,7 +321,7 @@ namespace MiWebAPI.Data
             }
             catch (Exception ex)
             {
-                return Error(ex.Message);
+                return ErrorInterno(ex);
             }
         }
 
@@ -420,7 +431,7 @@ namespace MiWebAPI.Data
             }
             catch (Exception ex)
             {
-                return Error(ex.Message);
+                return ErrorInterno(ex);
             }
         }
 
@@ -505,7 +516,7 @@ namespace MiWebAPI.Data
             }
             catch (Exception ex)
             {
-                return Error(ex.Message);
+                return ErrorInterno(ex);
             }
         }
     }
