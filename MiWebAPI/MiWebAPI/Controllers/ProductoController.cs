@@ -22,11 +22,13 @@ namespace MiWebAPI.Controllers
 
         private readonly InventarioData _data;
         private readonly ImagenData _imagenes;
+        private readonly ILogger<ProductoController> _log;
 
-        public ProductoController(InventarioData data, ImagenData imagenes)
+        public ProductoController(InventarioData data, ImagenData imagenes, ILogger<ProductoController> log)
         {
             _data = data;
             _imagenes = imagenes;
+            _log = log;
         }
 
         private int? UsuarioActualId => int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
@@ -59,6 +61,7 @@ namespace MiWebAPI.Controllers
         public async Task<IActionResult> Movimientos(string sku) => Ok(await _data.ListarMovimientos(sku, 50));
 
         [Authorize(Roles = Roles.Administrador)]
+        [RequestSizeLimit(5 * 1024 * 1024)] // foto (máx. 2 MB) + datos del formulario
         [HttpPost]
         public async Task<IActionResult> Crear()
         {
@@ -129,11 +132,13 @@ namespace MiWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(Falla("Error crítico controlado al crear: " + ex.Message));
+                _log.LogError(ex, "Error al crear el producto");
+                return Ok(Falla("No se pudo registrar el producto. Inténtalo de nuevo."));
             }
         }
 
         [Authorize(Roles = Roles.Administrador)]
+        [RequestSizeLimit(5 * 1024 * 1024)]
         [HttpPut("{sku}")]
         public async Task<IActionResult> Editar(string sku)
         {
@@ -193,13 +198,15 @@ namespace MiWebAPI.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return Ok(Falla("El producto se actualizó, pero falló la imagen: " + ex.Message));
+                    _log.LogError(ex, "Error al guardar la imagen del producto {Sku}", sku);
+                    return Ok(Falla("El producto se actualizó, pero no se pudo guardar la imagen. Inténtalo de nuevo."));
                 }
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                return Ok(Falla("Error crítico controlado al editar: " + ex.Message));
+                _log.LogError(ex, "Error al editar el producto {Sku}", sku);
+                return Ok(Falla("No se pudieron guardar los cambios. Inténtalo de nuevo."));
             }
         }
 
@@ -271,9 +278,9 @@ namespace MiWebAPI.Controllers
 
                 return (bytes, tipo, null);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return (null, null, "Error al procesar el flujo de la imagen: " + ex.Message);
+                return (null, null, "No se pudo leer la imagen. Intenta con otra.");
             }
         }
 

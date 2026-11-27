@@ -73,20 +73,26 @@ function llenar(p) {
     if (p.imagen) mostrarVistaPrevia(p.imagen);
 }
 
-const MAX_LADO = 1280;            // píxeles del lado más largo de la foto
+const LADO_FOTO = 800;              // todas las fotos quedan cuadradas de 800 x 800 píxeles
 const MAX_BYTES = 2 * 1024 * 1024; // límite del servidor
 
-// Las fotos del celular pesan varios MB: se reducen aquí, en el navegador, antes de enviarlas.
+// Formato único para todas las fotos: un cuadrado de 800 x 800 con fondo blanco.
+// La foto se escala completa (sin recortarla ni estirarla) y se centra; el espacio sobrante queda en blanco.
+// Así todas se ven del mismo tamaño en el inventario, el detalle y las ventas, sin deformarse.
 async function prepararImagen(archivo) {
     const imagen = await createImageBitmap(archivo, { imageOrientation: "from-image" });
-    const escala = Math.min(1, MAX_LADO / Math.max(imagen.width, imagen.height));
+    const escala = Math.min(LADO_FOTO / imagen.width, LADO_FOTO / imagen.height);
+    const ancho = Math.round(imagen.width * escala);
+    const alto = Math.round(imagen.height * escala);
     const lienzo = document.createElement("canvas");
-    lienzo.width = Math.round(imagen.width * escala);
-    lienzo.height = Math.round(imagen.height * escala);
+    lienzo.width = LADO_FOTO;
+    lienzo.height = LADO_FOTO;
     const ctx = lienzo.getContext("2d");
     ctx.fillStyle = "#fff"; // fondo blanco (el JPG no tiene transparencia)
-    ctx.fillRect(0, 0, lienzo.width, lienzo.height);
-    ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+    ctx.fillRect(0, 0, LADO_FOTO, LADO_FOTO);
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(imagen, Math.round((LADO_FOTO - ancho) / 2), Math.round((LADO_FOTO - alto) / 2), ancho, alto);
+    imagen.close?.();
     const blob = await new Promise((resolver) => lienzo.toBlob(resolver, "image/jpeg", 0.85));
     if (!blob) throw new Error("No se pudo procesar la imagen.");
     return new File([blob], archivo.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
@@ -157,10 +163,12 @@ form.addEventListener("submit", async (evento) => {
     try {
         const urlDestino = skuEditar ? `${API_URL}/Producto/${encodeURIComponent(skuEditar)}` : API_URL + "/Producto";
         // fetch directo para que el navegador arme el multipart/form-data con su separador
-        const respuestaHttp = await fetch(urlDestino, { method: skuEditar ? "PUT" : "POST", body: datos });
+        const respuestaHttp = await fetchSeguro(urlDestino, { method: skuEditar ? "PUT" : "POST", body: datos });
         if (respuestaHttp.status === 401) { sesionExpirada(); return; }
         if (respuestaHttp.status === 403) throw new Error("No tienes permiso para realizar esta acción.");
-        const r = await respuestaHttp.json();
+        let r = null;
+        try { r = await respuestaHttp.json(); } catch { /* sin JSON */ }
+        if (!r) throw new Error("El servidor no respondió como se esperaba. Inténtalo de nuevo.");
         if (!respuestaHttp.ok || !r.isSuccess) throw new Error(r.respuesta || "Error al procesar la solicitud.");
 
         // Se consulta el producto guardado para mostrarlo en la pantalla de confirmación.

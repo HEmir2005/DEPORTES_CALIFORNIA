@@ -1,4 +1,6 @@
+using System.Data;
 using System.Data.SqlClient;
+using MiWebAPI.Seguridad;
 
 namespace MiWebAPI.Data
 {
@@ -24,19 +26,57 @@ namespace MiWebAPI.Data
                 await CrearBaseSiNoExiste();
                 using var con = new SqlConnection(cadena);
                 await con.OpenAsync();
-                foreach (var lote in Lotes)
+
+                // Si la aplicación se conecta con el usuario de permisos limitados (solo leer y escribir datos),
+                // no puede crear ni modificar tablas: la estructura ya la preparó el usuario administrador.
+                if (await PuedeModificarEstructura(con))
                 {
-                    numero++;
-                    using var cmd = new SqlCommand(lote, con) { CommandTimeout = 90 };
-                    await cmd.ExecuteNonQueryAsync();
+                    foreach (var lote in Lotes)
+                    {
+                        numero++;
+                        using var cmd = new SqlCommand(lote, con) { CommandTimeout = 90 };
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                    _log.LogInformation("Base de datos verificada correctamente.");
                 }
-                _log.LogInformation("Base de datos verificada correctamente.");
+                else
+                {
+                    _log.LogInformation("El usuario de la conexión solo maneja datos: se omite la revisión de tablas y procedimientos.");
+                }
+
+                await CifrarContrasenasAntiguas(con);
             }
             catch (Exception ex)
             {
                 // No se detiene la aplicación: el error real se muestra al intentar usar la API.
                 _log.LogError(ex, "No se pudo preparar la base de datos (paso {Numero}). Revisa CadenaSQL y los permisos.", numero);
             }
+        }
+
+        private static async Task<bool> PuedeModificarEstructura(SqlConnection con)
+        {
+            using var cmd = new SqlCommand("SELECT HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'ALTER')", con);
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync() ?? 0) == 1;
+        }
+
+        // Convierte las contraseñas que todavía estén en texto plano a hash (una sola vez por usuario).
+        private async Task CifrarContrasenasAntiguas(SqlConnection con)
+        {
+            var pendientes = new List<(int Id, string Contrasena)>();
+            using (var sel = new SqlCommand("SELECT ID_USUARIO, CONTRASEÑA FROM dbo.USUARIO WHERE CONTRASEÑA NOT LIKE 'PBKDF2$%'", con))
+            using (var r = await sel.ExecuteReaderAsync())
+                while (await r.ReadAsync())
+                    if (!r.IsDBNull(1)) pendientes.Add((r.GetInt32(0), r.GetString(1)));
+
+            foreach (var (id, contrasena) in pendientes)
+            {
+                using var upd = new SqlCommand("UPDATE dbo.USUARIO SET CONTRASEÑA = @hash WHERE ID_USUARIO = @id", con);
+                upd.Parameters.Add("@hash", SqlDbType.VarChar, 255).Value = Contrasenas.Generar(contrasena.TrimEnd());
+                upd.Parameters.AddWithValue("@id", id);
+                await upd.ExecuteNonQueryAsync();
+            }
+            if (pendientes.Count > 0)
+                _log.LogInformation("Se cifraron {Cantidad} contraseña(s) que estaban en texto plano.", pendientes.Count);
         }
 
         // En SQL Server local crea la base si no existe. En Azure SQL la base se crea en el portal.
@@ -71,7 +111,7 @@ namespace MiWebAPI.Data
                 ID_USUARIO                INT IDENTITY(1,1) PRIMARY KEY,
                 NOMBRE_USUARIO            VARCHAR(50)  NOT NULL,
                 ROL                       VARCHAR(255) NOT NULL,
-                CONTRASEÑA                VARCHAR(20)  NOT NULL,
+                CONTRASEÑA                VARCHAR(255) NOT NULL,
                 FECHA_ULTIMA_MODIFICACION DATETIME     NOT NULL DEFAULT GETDATE()
             );
             """,
@@ -80,8 +120,18 @@ namespace MiWebAPI.Data
                 ALTER TABLE dbo.USUARIO ADD ACTIVO BIT NOT NULL CONSTRAINT DF_USUARIO_ACTIVO DEFAULT 1;
             """,
             "UPDATE dbo.USUARIO SET ACTIVO = 1 WHERE ACTIVO IS NULL;",
+            // La contraseña se guarda como hash (unos 83 caracteres): la columna necesita más espacio que 20.
             """
-            CREATE OR ALTER PROCEDURE dbo.usp_login_usuario (@NOMBRE_USUARIO VARCHAR(50), @CONTRASEÑA VARCHAR(20))
+            IF COL_LENGTH('dbo.USUARIO', 'CONTRASEÑA') < 255
+            BEGIN
+                IF COLUMNPROPERTY(OBJECT_ID('dbo.USUARIO'), 'CONTRASEÑA', 'AllowsNull') = 1
+                    ALTER TABLE dbo.USUARIO ALTER COLUMN CONTRASEÑA VARCHAR(255) NULL;
+                ELSE
+                    ALTER TABLE dbo.USUARIO ALTER COLUMN CONTRASEÑA VARCHAR(255) NOT NULL;
+            END
+            """,
+            """
+            CREATE OR ALTER PROCEDURE dbo.usp_login_usuario (@NOMBRE_USUARIO VARCHAR(50), @CONTRASEÑA VARCHAR(255))
             AS
             BEGIN
                 SET NOCOUNT ON;
@@ -92,7 +142,7 @@ namespace MiWebAPI.Data
             """,
             """
             CREATE OR ALTER PROCEDURE dbo.AGREGAR_USUARIO (
-                @NOMBRE_USUARIO VARCHAR(50), @ROL VARCHAR(255), @CONTRASEÑA VARCHAR(20),
+                @NOMBRE_USUARIO VARCHAR(50), @ROL VARCHAR(255), @CONTRASEÑA VARCHAR(255),
                 @numeroError INT OUTPUT, @respuesta VARCHAR(1000) OUTPUT)
             AS
             BEGIN
@@ -113,11 +163,15 @@ namespace MiWebAPI.Data
             """,
             """
             CREATE OR ALTER PROCEDURE dbo.ACTUALIZAR_USUARIO (
-                @ID_USUARIO INT, @NOMBRE_USUARIO VARCHAR(50), @ROL VARCHAR(255), @CONTRASEÑA VARCHAR(20),
+                @ID_USUARIO INT, @NOMBRE_USUARIO VARCHAR(50), @ROL VARCHAR(255), @CONTRASEÑA VARCHAR(255),
                 @numeroError INT OUTPUT, @respuesta VARCHAR(1000) OUTPUT)
             AS
             BEGIN
                 SET NOCOUNT ON;
+                IF EXISTS (SELECT 1 FROM USUARIO WHERE NOMBRE_USUARIO = @NOMBRE_USUARIO AND ID_USUARIO <> @ID_USUARIO)
+                BEGIN
+                    SET @numeroError = 1; SET @respuesta = 'Ese nombre de usuario ya está en uso.'; RETURN;
+                END
                 BEGIN TRY
                     UPDATE USUARIO
                     SET NOMBRE_USUARIO = @NOMBRE_USUARIO, ROL = @ROL, CONTRASEÑA = @CONTRASEÑA,

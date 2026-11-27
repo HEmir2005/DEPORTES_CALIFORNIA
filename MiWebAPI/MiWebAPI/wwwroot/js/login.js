@@ -13,16 +13,23 @@ formLogin.addEventListener("submit", async (evento) => {
     btnLogin.textContent = "Ingresando...";
 
     try {
-        const respuesta = await fetch(API_URL + "/Auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                NombreUsuario: nombreUsuario.value.trim(),
-                Contrasena: password.value
-            })
-        });
+        let respuesta;
+        try {
+            respuesta = await fetch(API_URL + "/Auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    NombreUsuario: nombreUsuario.value.trim(),
+                    Contrasena: password.value
+                })
+            });
+        } catch {
+            throw new Error("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.");
+        }
 
-        const resultado = await respuesta.json();
+        let resultado = null;
+        try { resultado = await respuesta.json(); } catch { /* sin JSON */ }
+        if (!resultado) throw new Error("El servidor no está disponible en este momento. Inténtalo de nuevo en unos minutos.");
         if (!respuesta.ok || !resultado.isSuccess) {
             throw new Error(resultado.respuesta || "No fue posible iniciar sesión.");
         }

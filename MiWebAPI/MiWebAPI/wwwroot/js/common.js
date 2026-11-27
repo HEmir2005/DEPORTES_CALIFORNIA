@@ -12,14 +12,41 @@ const ICONO_MOV = {
     SALIDA: "bi-box-arrow-up text-danger"
 };
 
+// Todas las llamadas a la API pasan por aquí. Muestra el indicador de carga, bloquea los botones mientras se
+// guarda o modifica algo (así no se puede enviar dos veces) y convierte los fallos de red en un mensaje claro.
+let peticionesActivas = 0;
+async function fetchSeguro(url, opciones = {}) {
+    const modifica = (opciones.method || "GET").toUpperCase() !== "GET";
+    const bloqueados = [];
+    if (!porId("indicadorCarga")) {
+        document.body.insertAdjacentHTML("beforeend",
+            '<div id="indicadorCarga" class="indicador-carga" role="status" hidden>' +
+            '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Cargando...</div>');
+    }
+    peticionesActivas++;
+    porId("indicadorCarga").hidden = false;
+    if (modifica) document.querySelectorAll("button:not(:disabled)").forEach((b) => { b.disabled = true; bloqueados.push(b); });
+    try {
+        return await fetch(url, opciones);
+    } catch {
+        throw new Error("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.");
+    } finally {
+        peticionesActivas--;
+        if (peticionesActivas === 0) porId("indicadorCarga").hidden = true;
+        bloqueados.forEach((b) => { b.disabled = false; });
+    }
+}
+
 // Llama a la API. Lanza Error si el servidor falla o si la respuesta trae isSuccess = false.
 async function api(url, opciones = {}) {
-    const respuesta = await fetch(url, opciones);
+    const respuesta = await fetchSeguro(url, opciones);
     if (respuesta.status === 401) { sesionExpirada(); throw new Error("Tu sesión terminó. Inicia sesión de nuevo."); }
     if (respuesta.status === 403) throw new Error("No tienes permiso para realizar esta acción.");
     let datos = null;
     try { datos = await respuesta.json(); } catch { /* respuesta sin JSON */ }
-    if (!respuesta.ok) throw new Error(datos?.respuesta || `Error del servidor (${respuesta.status}).`);
+    if (!respuesta.ok) throw new Error(datos?.respuesta || (respuesta.status >= 500
+        ? "El servidor no está disponible en este momento. Inténtalo de nuevo en unos minutos."
+        : `No se pudo completar la solicitud (${respuesta.status}).`));
     if (datos && datos.isSuccess === false) throw new Error(datos.respuesta || "La operación no se pudo completar.");
     return datos;
 }
@@ -39,7 +66,7 @@ const parametro = (nombre) => new URLSearchParams(location.search).get(nombre);
 
 function imgProducto(p, clase = "", ampliable = false) {
     const zoom = ampliable && p.imagen ? ' data-zoom="1" title="Toca la imagen para ampliarla"' : "";
-    return `<img src="${esc(p.imagen || IMG_VACIA)}" alt="${esc(p.nombre)}" class="${clase}"${zoom} onerror="this.onerror=null;this.removeAttribute('data-zoom');this.src=IMG_VACIA">`;
+    return `<img src="${esc(p.imagen || IMG_VACIA)}" alt="${esc(p.nombre)}" class="${clase}"${zoom}>`;
 }
 
 // Muestra la imagen completa y grande en una ventana (se abre al tocar una imagen marcada con data-zoom).
@@ -63,6 +90,15 @@ function mostrarImagen(src, titulo) {
     porId("imagenAmpliada").alt = titulo || "";
     bootstrap.Modal.getOrCreateInstance(porId("modalImagen")).show();
 }
+
+// Si una foto no carga, se muestra la imagen genérica. Se hace aquí (y no con onerror="..." en el HTML)
+// porque la política de seguridad del sitio no permite código JavaScript escrito dentro del HTML.
+document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.src === IMG_VACIA) return;
+    img.removeAttribute("data-zoom");
+    img.src = IMG_VACIA;
+}, true);
 
 document.addEventListener("click", (e) => {
     const img = e.target.closest("img[data-zoom]");
